@@ -1,0 +1,32 @@
+
+life360_martijn_van_der_schoot:
+  hide_if_away: false
+  icon:
+  mac:
+  name: life360 martijn van der schoot
+  picture: https://www.life360.com/img/user_images/0caf4fa9-a865-4140-961f-84990cf2e499/533b541a-6fc0-49de-84e4-cd128cc238e3.jpg?fd=2
+  track: true
+
+life360_suzanne_schelhaas:
+  hide_if_away: false
+  icon:
+  mac:
+  name: life360 suzanne schelhaas
+  picture:
+  track: true
+
+google_maps_113592210079335798045:
+  hide_if_away: false
+  icon:
+  mac:
+  name: google maps Martijn
+  picture: /local/martijn.jpg
+  track: true
+
+google_maps_vanderschootfam_gmail_com:
+  hide_if_away: false
+  icon:
+  mac:
+  name: google maps Suzanne
+  picture: /local/suzanne.jpg
+  track: true
