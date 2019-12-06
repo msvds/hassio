@@ -5454,3 +5454,17 @@
       message: AP Tweede Verdieping is nu al 10 minuten offline
       title: AP Tweede Verdieping offline
     service: notify.pushbullet
+- id: 156hf545436
+  alias: Notification AP Derde Verdieping offline
+  trigger:
+  - entity_id: sensor.ap_ac_iw_third_floor
+    for: 00:10:00
+    platform: state
+    to: '"offline"'
+  condition:
+  action:
+  - data:
+      message: AP Derde Verdieping is nu al 10 minuten offline
+      title: AP Derde Verdieping offline
+    service: notify.pushbullet
+
