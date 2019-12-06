@@ -62,7 +62,7 @@
   alias: Timer Lights On na zonsondergang
   trigger:
   - event: sunset
-    offset: +00:05:00
+    offset: +00:10:00
     platform: sun
   condition:
   action:
@@ -75,7 +75,7 @@
   alias: Timer Lights Off na zonsopgang
   trigger:
   - event: sunrise
-    offset: -00:10:00
+    offset: -00:20:00
     platform: sun
   action:
   - data:
@@ -86,7 +86,7 @@
 - id: lichtenuitmiddennacht
   alias: Timer Lights Off uit middennacht
   trigger:
-  - at: 00:01
+  - at: '23:29'
     platform: time
   condition:
   - condition: template
@@ -120,6 +120,8 @@
   - condition: state
     entity_id: group.all_devices
     state: home
+  - condition: template
+    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
   - data:
       entity_id:
@@ -311,7 +313,7 @@
     event_data:
       id: smart_switch_slaapkamer
       event: 1002
-  condition: 
+  condition:
   - condition: template
     value_template: '{{  states.sensor.time.state > "21:30" or states.sensor.time.state
       < "05:59"}}'
@@ -344,7 +346,7 @@
     event_data:
       id: smart_switch_slaapkamer
       event: 1002
-  condition: 
+  condition:
   - condition: template
     value_template: '{{  states.sensor.time.state > "6:00" and states.sensor.time.state
       < "21:30"}}'
@@ -472,7 +474,7 @@
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state < states.input_datetime.bedtijd_lars_week.state[0:5]
-      or states.sensor.time.state > ''23:00'' }}'
+      or states.sensor.time.state > "23:00" }}'
   action:
   - data:
       entity_id: light.leeslamp_lars
@@ -488,7 +490,7 @@
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state < states.input_datetime.bedtijd_lars_week.state[0:5]
-      or states.sensor.time.state > ''23:00'' }}'
+      or states.sensor.time.state > "23:00" }}'
   action:
   - data:
       entity_id:
@@ -533,7 +535,7 @@
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state < states.input_datetime.bedtijd_nienke_week.state[0:5]
-      or states.sensor.time.state > ''23:00'' }}'
+      or states.sensor.time.state > "23:00" }}'
   action:
   - data:
       entity_id: light.leeslamp_nienke
@@ -548,8 +550,8 @@
       event: 1003
   condition:
   - condition: template
-    value_template: "{{ states.sensor.time.state < states.input_datetime.bedtijd_nienke_week.state[0:5]\
-      \ \n or states.sensor.time.state > '23:00' }}"
+    value_template: '{{ states.sensor.time.state < states.input_datetime.bedtijd_nienke_week.state[0:5]
+      or states.sensor.time.state > "23:00" }}'
   action:
   - data:
       entity_id: light.lampen_kamer_nienke
@@ -759,7 +761,8 @@
   - service: camera.record
     data:
       entity_id: camera.dafang_camera_1
-      filename: /config/video/alarm_house_motion_nacht_{{ now().strftime("%Y%m%d-%H%M%S") }}.mp4
+      filename: /config/video/alarm_house_motion_nacht_{{ now().strftime("%Y%m%d-%H%M%S")
+        }}.mp4
       duration: 1200
   - data:
       brightness: 200
@@ -827,8 +830,8 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: "Alarm. Brandalarm in de eetkamer!"
-      title: "Brandalarm!"
+      message: Alarm. Brandalarm in de eetkamer!
+      title: Brandalarm!
       data:
         fontsize: large
         duration: 5
@@ -864,6 +867,62 @@
   - condition: template
     value_template: '{{ states.sensor.time.state > "17:00" and states.sensor.time.state
       < "22:15"}}'
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_left_slaapkamer.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_right_slaapkamer_dag.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_double_click.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_long_click.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_quad_click.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_single_click_avond.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_single_click_dag.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_triple_click.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_slaapkamer_minutes.state
+      | int}}
+
+      '
   - after: sunset
     condition: sun
   action:
@@ -914,7 +973,7 @@
     data:
       message: Kan iemand de slaapkamerdeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated))
         | int /60) | int}} minuten open.
-      title: "Deur open"
+      title: Deur open
       data:
         fontsize: large
         duration: 5
@@ -1038,9 +1097,14 @@
     platform: state
     to: 'off'
   condition:
-  - condition: state
-    entity_id: light.lampen_kamer_lars
-    state: 'on'
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: light.leeslamp_lars
+      state: 'on'
+    - condition: state
+      entity_id: light.lamp_lars
+      state: 'on'
   action:
   - data:
       entity_id:
@@ -1055,9 +1119,14 @@
     platform: state
     to: 'off'
   condition:
-  - condition: state
-    entity_id: light.lampen_kamer_nienke
-    state: 'on'
+  - condition: or
+    conditions:
+    - condition: state
+      entity_id: light.leeslamp_nienke
+      state: 'on'
+    - condition: state
+      entity_id: light.lamp_nienke
+      state: 'on'
   action:
   - data:
       entity_id:
@@ -1197,8 +1266,8 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: "Alarm. Brandalarm in de garage!"
-      title: "Brandalarm!"
+      message: Alarm. Brandalarm in de garage!
+      title: Brandalarm!
       data:
         fontsize: large
         duration: 5
@@ -1342,7 +1411,7 @@
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Lars zet zijn leeslamp weer aan
-      title: "Leeslamp Lars"
+      title: Leeslamp Lars
       data:
         fontsize: large
         duration: 5
@@ -1378,7 +1447,7 @@
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Lars zet zijn leeslamp weer aan
-      title: "Leeslamp Lars"
+      title: Leeslamp Lars
       data:
         fontsize: large
         duration: 5
@@ -1420,8 +1489,8 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: "Alarm. Brandalarm in de hal boven!"
-      title: "Brandalarm!"
+      message: Alarm. Brandalarm in de hal boven!
+      title: Brandalarm!
       data:
         fontsize: large
         duration: 5
@@ -1450,8 +1519,8 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: "Alarm. Brandalarm op zolder!"
-      title: "Brandalarm!"
+      message: Alarm. Brandalarm op zolder!
+      title: Brandalarm!
       data:
         fontsize: large
         duration: 5
@@ -1510,7 +1579,7 @@
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
         open!
-      title: "Regen op komst!"
+      title: Regen op komst!
       data:
         fontsize: large
         duration: 5
@@ -1545,9 +1614,9 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is nog
-        open!
-      title: "Regen op komst!"
+      message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
+        nog open!
+      title: Regen op komst!
       data:
         fontsize: large
         duration: 5
@@ -1582,9 +1651,9 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is nog
-        open!
-      title: "Regen op komst!"
+      message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
+        nog open!
+      title: Regen op komst!
       data:
         fontsize: large
         duration: 5
@@ -1616,9 +1685,8 @@
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
-      message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog
-        open!
-      title: "Regen op komst!"
+      message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
+      title: Regen op komst!
       data:
         fontsize: large
         duration: 5
@@ -1877,8 +1945,8 @@
 
       '
   - condition: template
-    value_template: '{{states.sensor.hum_delta_douche_vs_indoor_average.state !=''unknown''
-      or states.sensor.hum_delta_douche_vs_indoor_average.state != ''unavailable''}}'
+    value_template: '{{states.sensor.hum_delta_douche_vs_indoor_average.state !="unknown"
+      or states.sensor.hum_delta_douche_vs_indoor_average.state != "unavailable"}}'
   - condition: template
     value_template: '{{states.sensor.average_house_humidity.attributes.min_value |
       int != 0}}'
@@ -1909,8 +1977,8 @@
 
       '
   - condition: template
-    value_template: '{{states.sensor.hum_delta_keuken_vs_indoor_average.state !=''unknown''
-      or states.sensor.hum_delta_keuken_vs_indoor_average.state != ''unavailable''}}'
+    value_template: '{{states.sensor.hum_delta_keuken_vs_indoor_average.state !="unknown"
+      or states.sensor.hum_delta_keuken_vs_indoor_average.state != "unavailable"}}'
   - condition: template
     value_template: '{{states.sensor.average_house_humidity.attributes.min_value |
       int != 0}}'
@@ -1929,8 +1997,8 @@
   alias: Temperatuur FanBoost ivm gebruik gasfornuis
   trigger:
   - platform: template
-    value_template: '{{ states.sensor.temp_delta_keuken_vs_indoor_average.state | float
-      > states.input_number.temp_delta_afzuiging_on.state | float }}'
+    value_template: '{{ states.sensor.temp_delta_keuken_vs_indoor_average.state |
+      float > states.input_number.temp_delta_afzuiging_on.state | float }}'
   - platform: template
     value_template: '{{ states.sensor.temp_delta_keuken_vs_keuken_mean.state | float
       > states.input_number.temp_delta_afzuiging_on.state | float }}'
@@ -2041,7 +2109,7 @@
   - service: notify.woonkamerandroidtv
     data:
       message: De voorraad zout in de waterontharder is op. Graag bijvullen.
-      title: "Zoutvoorraad op!"
+      title: Zoutvoorraad op!
       data:
         fontsize: large
         duration: 5
@@ -2071,13 +2139,13 @@
     service: light.turn_off
   - service: tts.google_translate_say
     data_template:
-      message: 'Let op, Nienke zet haar leeslamp weer aan'
+      message: Let op, Nienke zet haar leeslamp weer aan
       language: nl
     entity_id: group.google_home_group
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Nienke zet haar leeslamp weer aan
-      title: "Leeslamp Nienke"
+      title: Leeslamp Nienke
       data:
         fontsize: large
         duration: 5
@@ -2113,7 +2181,7 @@
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Nienke zet haar leeslamp weer aan
-      title: "Leeslamp Nienke"
+      title: Leeslamp Nienke
       data:
         fontsize: large
         duration: 5
@@ -2230,7 +2298,7 @@
     data:
       message: Deur bijkeuken {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated))
         | int /60) | int}} minuten open
-      title: "Deur open"
+      title: Deur open
       data:
         fontsize: large
         duration: 5
@@ -2269,7 +2337,7 @@
     data:
       message: Garagedeur {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated))
         | int /60) | int}} minuten open
-      title: "Garagedeur open"
+      title: Garagedeur open
       data:
         fontsize: large
         duration: 5
@@ -2883,8 +2951,8 @@
   alias: Alert Other wasmachine klaar
   trigger:
   - platform: template
-    value_template: '{{ states.sensor.wasmachine_vibrationstrength.state | float
-      > 60 }}'
+    value_template: '{{ states.sensor.wasmachine_vibrationstrength.state | float >
+      60 }}'
   condition:
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -2908,7 +2976,7 @@
   - service: notify.woonkamerandroidtv
     data:
       message: De wasmachine is klaar
-      title: "Wasmachine"
+      title: Wasmachine
       data:
         fontsize: large
         duration: 5
@@ -3011,7 +3079,8 @@
     to: 'off'
   condition:
   - condition: template
-    value_template: '{{states.climate.thermostat_badkamer.attributes.temperature | float > 12}}'
+    value_template: '{{states.climate.thermostat_badkamer.attributes.temperature |
+      float > 12}}'
   - condition: template
     value_template: '{% set last_triggered = states.automation.switch_woonkamerdeur_badkamer_verwarmen_ivm_in_bad_gaan.attributes.last_triggered
       %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
@@ -3122,7 +3191,8 @@
   - service: camera.record
     data:
       entity_id: camera.dafang_camera_1
-      filename: /config/video/alarm_house_deur_open_{{ now().strftime("%Y%m%d-%H%M%S") }}.mp4
+      filename: /config/video/alarm_house_deur_open_{{ now().strftime("%Y%m%d-%H%M%S")
+        }}.mp4
       duration: 1200
   - service: alarm_control_panel.alarm_trigger
     entity_id: alarm_control_panel.home_alarm
@@ -3157,7 +3227,8 @@
     to: triggered
   action:
   - data:
-      message: ALARM! Het alarm is getriggered door beweging of het openen van een deur!
+      message: ALARM! Het alarm is getriggered door beweging of het openen van een
+        deur!
       title: ALARM
     service: notify.pushbullet
   - service: media_player.volume_set
@@ -3166,7 +3237,8 @@
       volume_level: 0.9
   - service: tts.google_translate_say
     data_template:
-      message: ALARM. Het is getriggered door beweging of het openen van een deur. ALARM.
+      message: ALARM. Het is getriggered door beweging of het openen van een deur.
+        ALARM.
       language: nl
     entity_id: group.google_home_group
   - service: media_player.volume_set
@@ -3203,12 +3275,12 @@
   action:
   - service: notify.pushbullet
     data_template:
-      message: 'Het alarm is aangezet in de thuis modus om {{ states(''sensor.date_time'')
+      message: 'Het alarm is aangezet in de thuis modus om {{ states("sensor.date_time")
         }}
 
         '
 - id: '1569223228774'
-  alias: Alarm House Disarm Alarm met dubbel click  
+  alias: Alarm House Disarm Alarm met dubbel click
   trigger:
   - platform: event
     event_type: deconz_event
@@ -3235,8 +3307,8 @@
     entity_id: input_select.house_mode
     data:
       option: Home
-- id: '15674fsdfsddfgd9'
-  alias: 'Alarm House Disarm Alarm in de ochtend'
+- id: 15674fsdfsddfgd9
+  alias: Alarm House Disarm Alarm in de ochtend
   trigger:
   - at: '6:00:00'
     platform: time
@@ -3252,6 +3324,29 @@
     entity_id: input_select.house_mode
     data:
       option: Home
+- id: '15653453453046'
+  alias: Notification ijskrabben google home
+  trigger:
+  - entity_id: binary_sensor.presence_keuken
+    platform: state
+    to: 'on'
+  condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "6:30" and states.sensor.time.state
+      < "8:15"}}'
+  - condition: template
+    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
+  - condition: template
+    value_template: '{{states.binary_sensor.workday_sensor.state == "on"}}'
+  - condition: template
+    value_template: '{{states.sensor.br_ground_temperature.state | float < -0.5}}'
+  action:
+  - service: tts.google_translate_say
+    data_template:
+      message: Goedemorgen. Waarschijnlijk moet je zo krabbben, want het vriest op
+        het moment aan de grond}}
+      language: nl
+    entity_id: group.google_home_group
 - id: '1569225894046'
   alias: Notification trash today google home
   trigger:
@@ -3260,10 +3355,10 @@
     to: 'on'
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > "7:30" and states.sensor.time.state
+    value_template: '{{ states.sensor.time.state > "7:00" and states.sensor.time.state
       < "8:15"}}'
   - condition: template
-    value_template: '{{states.sensor.trash_today.state != ''Geen''}}'
+    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3278,18 +3373,18 @@
     platform: time
   condition:
   - condition: template
-    value_template: '{{states.sensor.trash_today.state != ''Geen''}}'
+    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
   action:
   - data:
       message: 'Vandaag moet de container buiten gezet worden, namelijk van de {{
-        states(''sensor.trash_today'') }}
+        states("sensor.trash_today") }}
 
         '
       title: Container
     service: notify.pushbullet
   - data:
       message: 'Vandaag moet de container buiten gezet worden, namelijk van de {{
-        states(''sensor.trash_today'') }}
+        states("sensor.trash_today") }}
 
         '
       title: Container
@@ -3338,8 +3433,8 @@
   - condition: template
     value_template: '{{now().weekday() == 3}}'
   - condition: template
-    value_template: '{{ states.sensor.time.state > ''15:30'' and states.sensor.time.state
-      < ''18:15''}}'
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
   - data:
       message: Martijn is vertrokken van zijn werk, een paar minuten en hij is er
@@ -3360,8 +3455,8 @@
     to: Afwezig
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > ''15:30'' and states.sensor.time.state
-      < ''18:15''}}'
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3406,8 +3501,8 @@
     to: Afwezig
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > ''15:30'' and states.sensor.time.state
-      < ''18:15''}}'
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   - condition: template
     value_template: '{{ states.device_tracker.life360_suzanne_schelhaas.attributes.speed
       | int > 1 and states.device_tracker.life360_suzanne_schelhaas.attributes.speed
@@ -3458,8 +3553,8 @@
     to: Afwezig
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > ''15:30'' and states.sensor.time.state
-      < ''18:15''}}'
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3504,8 +3599,8 @@
     to: Afwezig
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > ''15:30'' and states.sensor.time.state
-      < ''18:15''}}'
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   - condition: template
     value_template: '{{ states.device_tracker.life360_martijn_van_der_schoot.attributes.speed
       | int > 1 and states.device_tracker.life360_martijn_van_der_schoot.attributes.speed
@@ -4068,7 +4163,7 @@
     data:
       message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
         | float)*1000 }} liter
-      title: "Hoog Gasverbruik"
+      title: Hoog Gasverbruik
       data:
         fontsize: large
         duration: 5
@@ -4103,7 +4198,7 @@
     data:
       message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
         {{states.sensor.toon_p1_power_use.state | int}} kW
-      title: "Hoog Electriciteitsverbruik"
+      title: Hoog Electriciteitsverbruik
       data:
         fontsize: large
         duration: 5
@@ -5029,7 +5124,7 @@
       entity_id: camera.dafang_camera_1
       filename: /config/www/{{ entity_id }}_{{ now().strftime("%Y%m%d-%H%M%S") }}.mp4
       duration: 1200
-- id: '156g54353gd712'
+- id: 156g54353gd712
   alias: Switch Woonkamerdeur badkamer verwarmen ivm in bad gaan
   trigger:
     platform: event
@@ -5053,8 +5148,7 @@
   - data_template:
       duration: '{{ (states.timer.fan_on_timer.attributes.remaining [0:1] | int *
         3600 + states.timer.fan_on_timer.attributes.remaining [2:4] | int * 60 + states.timer.fan_on_timer.attributes.remaining
-        [5:7] | int + 60 | int * 60) | timestamp_custom("%H:%M:%S",
-        false) }}'
+        [5:7] | int + 60 | int * 60) | timestamp_custom("%H:%M:%S", false) }}'
       entity_id: timer.fan_on_timer
     service: timer.start
 - id: '15769768768324'
@@ -5162,7 +5256,8 @@
     service: light.turn_off
   - data_template:
       language: nl
-      message: OK, ik heb de lampen beneden uitgezet. Je kunt naar boven gaan, weltrusten alvast
+      message: OK, ik heb de lampen beneden uitgezet. Je kunt naar boven gaan, weltrusten
+        alvast
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '1576967567567524'
@@ -5196,7 +5291,8 @@
       option: Night
   - data_template:
       language: nl
-      message: OK, ik heb alle lampen binnen uitgezet en de beveiliging voor de nacht aangezet. Weltrusten
+      message: OK, ik heb alle lampen binnen uitgezet en de beveiliging voor de nacht
+        aangezet. Weltrusten
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '1576963353524'
@@ -5206,7 +5302,7 @@
   - entity_id: input_boolean.leave
     platform: state
     to: 'on'
-  condition: 
+  condition:
   - condition: template
     value_template: '{{ states.input_select.house_mode.state != "Kids Home Alone"
       and states.input_select.house_mode.state != "Guests"}}'
@@ -5219,7 +5315,8 @@
       option: Away
   - data_template:
       language: nl
-      message: OK, ik heb beveiliging aangezet zodat je veilig kan vertrekken. Tot later, dag
+      message: OK, ik heb beveiliging aangezet zodat je veilig kan vertrekken. Tot
+        later, dag
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '1576953453453524'
@@ -5239,7 +5336,8 @@
       option: Extended Away
   - data_template:
       language: nl
-      message: OK, ik heb beveiliging aangezet zodat je veilig voor een langere tijd kunt vertrekken. Ga je op vakantie? Tot over lange tijd, dag
+      message: OK, ik heb beveiliging aangezet zodat je veilig voor een langere tijd
+        kunt vertrekken. Ga je op vakantie? Tot over lange tijd, dag
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '1576942423524'
@@ -5257,7 +5355,9 @@
       option: Guests
   - data_template:
       language: nl
-      message: OK, ik heb de gasten modus aangezet. Welkom gasten. Ik zal alles iets comfortabeler maken dan normaal, want met gasten in huis moet het comfort natuurlijk maximaal zijn. Hopelijk hebben jullie een aangenaam verblijf
+      message: OK, ik heb de gasten modus aangezet. Welkom gasten. Ik zal alles iets
+        comfortabeler maken dan normaal, want met gasten in huis moet het comfort
+        natuurlijk maximaal zijn. Hopelijk hebben jullie een aangenaam verblijf
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '15769424234224'
@@ -5279,55 +5379,78 @@
     service: input_boolean.turn_off
   - data_template:
       language: nl
-      message: OK, ik heb een reset uitgevoerd. Het huis staat weer in de Home modus en de eco modus is uitgezet
+      message: OK, ik heb een reset uitgevoerd. Het huis staat weer in de Home modus
+        en de eco modus is uitgezet
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '15643436'
   alias: Notification p2000 in de buurt Martijn pushbullet
   trigger:
   - platform: template
-    value_template: '{{((as_timestamp(now())-as_timestamp(states.light.lamp_wc_beneden.last_updated))
-      | int /60) > states.input_number.condition_no_click_lights_off_wc_minutes.state
-      | int}}'
-  - platform: template
-    value_template: '{{ (distance("person.martijn", "sensor.p2000") | float) < 1 }}'
+    value_template: '{{ (distance("person.martijn", "sensor.p2000") *1000 | float)
+      < 500 }}'
   condition:
   action:
   - data:
-      message: Er is een P2000 melding vlakbij Martijn in de buurt, namelijk op {{ distance('person.martijn', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij Martijn in de buurt, namelijk op {{
+        distance('person.martijn', 'sensor.p2000') *1000 | int }} meter afstand. De
+        melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij Martijn
     service: notify.pushbullet
   - data:
-      message: Er is een P2000 melding vlakbij Martijn in de buurt, namelijk op {{ distance('person.martijn', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij Martijn in de buurt, namelijk op {{
+        distance('person.martijn', 'sensor.p2000') *1000 | int }} meter afstand. De
+        melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij Martijn
     service: notify.pushbullet_suzanne
-- id: '1564gdfgdgd36'
+- id: 1564gdfgdgd36
   alias: Notification p2000 in de buurt Suzanne pushbullet
   trigger:
   - platform: template
-    value_template: '{{ (distance("person.suzanne", "sensor.p2000") | float) < (1 | float)}}'
+    value_template: '{{ (distance("person.suzanne", "sensor.p2000") *1000 | float)
+      < 500 }}'
   condition:
   action:
   - data:
-      message: Er is een P2000 melding vlakbij Suzanne in de buurt, namelijk op {{ distance('person.suzanne', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij Suzanne in de buurt, namelijk op {{
+        distance('person.suzanne', 'sensor.p2000') *1000 | int }} meter afstand. De
+        melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij Suzanne
     service: notify.pushbullet
   - data:
-      message: Er is een P2000 melding vlakbij Suzanne in de buurt, namelijk op {{ distance('person.suzanne', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij Suzanne in de buurt, namelijk op {{
+        distance('person.suzanne', 'sensor.p2000') *1000 | int }} meter afstand. De
+        melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij Suzanne
     service: notify.pushbullet_suzanne
-- id: '1564gdgdfgdgdd36'
+- id: 1564gdgdfgdgdd36
   alias: Notification p2000 in de buurt van huis pushbullet
   trigger:
   - platform: template
-    value_template: '{{ (distance("zone.home", "sensor.p2000") | float) < (1 | float)}}'
+    value_template: '{{ (distance("zone.home", "sensor.p2000") *1000 | float) < 500
+      }}'
   condition:
   action:
   - data:
-      message: Er is een P2000 melding vlakbij huis, namelijk op {{ distance('zone.home', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij huis, namelijk op {{ distance('zone.home',
+        'sensor.p2000') *1000 | int }} meter afstand. De melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij huis
     service: notify.pushbullet
   - data:
-      message: Er is een P2000 melding vlakbij huis, namelijk op {{ distance('zone.home', 'sensor.p2000') | float }} km afstand
+      message: Er is een P2000 melding vlakbij huis, namelijk op {{ distance('zone.home',
+        'sensor.p2000') *1000 | int }} meter afstand. De melding is {{states.sensor.p2000.state}}
       title: P2000 melding vlakbij huis
     service: notify.pushbullet_suzanne
+- id: 156hfgdhdf7dd36
+  alias: Notification AP Tweede Verdieping offline
+  trigger:
+  - entity_id: sensor.ap_ac_iw_second_floor
+    for: 00:10:00
+    platform: state
+    to: '"offline"'
+  condition:
+  action:
+  - data:
+      message: AP Tweede Verdieping is nu al 10 minuten offline
+      title: AP Tweede Verdieping offline
+    service: notify.pushbullet

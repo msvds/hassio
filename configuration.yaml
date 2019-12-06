@@ -32,6 +32,11 @@ discovery:
   ignore:
     - yeelight
     
+device_tracker:
+  - platform: google_maps
+    username: !secret mail_fam
+    scan_interval: 5
+
 google:
   client_id: !secret google_client_id
   client_secret: !secret google_client_secret
@@ -635,7 +640,7 @@ input_datetime:
   sinterklaas:
     has_time: false
     has_date: true
-    initial: '2019-12-05'
+    initial: '2020-12-05'
     name: 'Sinterklaas'
   herfstvakantie:
     has_time: false
@@ -798,6 +803,13 @@ input_number:
     step: 1
   condition_motion_lights_on_woonkamer_minutes:
     name: Min switch not clicked before lights turn on by motion woonkamer
+    icon: mdi:clock-start
+    #initial: 15
+    min: 5
+    max: 60
+    step: 5
+  condition_motion_lights_on_slaapkamer_minutes:
+    name: Min switch not clicked before lights turn on by motion slaapkamer
     icon: mdi:clock-start
     #initial: 15
     min: 5
@@ -1094,10 +1106,7 @@ light:
     # notifiers:
       # - pushbullet
 
-device_tracker:
-  - platform: google_maps
-    username: !secret mail_fam
-    scan_interval: 5
+
 #  - platform: unifi
 #    username: !secret unifi_username
 #    password: !secret unifi_password
@@ -1129,5 +1138,4 @@ zone: !include zones.yaml
 #input_select: !include input_select.yaml
 #script: !include scripts.yaml
 #light: !include light_group.yaml
-#homekit: !include homekit.yaml
 #switch: !include switch.yaml
