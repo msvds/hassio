@@ -5720,3 +5720,13 @@
         {%- endmacro -%}
         {{greeting_sentence(person)}}
       call_no_announcement: 1
+- id: 587hfgd432423fh
+  alias: People Greeting test 2
+  trigger:
+  - entity_id: person.suzanne
+    platform: state
+    to: home
+  action:
+  - service: script.speech_engine
+    data:
+      call_greeting: 1
