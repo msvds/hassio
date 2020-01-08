@@ -1,0 +1,59 @@
+# Example groups.yaml entry
+Smart meter:
+  - sensor.toon_gas_used_last_hour
+  - sensor.toon_gas_used_cnt
+  - sensor.toon_power_use_cnt
+  - sensor.toon_power_use
+  - sensor.toon_p1_power_use_cnt_pulse
+  - sensor.toon_p1_power_use_cnt_low
+  - sensor.toon_p1_power_use_cnt_high
+  - sensor.toon_p1_power_use_low
+  - sensor.toon_p1_power_use_high
+  
+Boiler Status:
+  - sensor.toon_boiler_intemp
+  - sensor.toon_boiler_outtemp
+  - sensor.toon_boiler_setpoint
+  - sensor.toon_boiler_pressure
+  - sensor.toon_boiler_modulation
+  - sensor.toon_room_temp
+  - sensor.toon_room_temp_setpoint
+  
+Dafang3:
+    - camera.dafang3
+    - switch.dafang3_h264_rtsp_server
+    - switch.dafang3_mjpeg_rtsp_server
+    - sensor.dafang3
+    - device_tracker.dafang3
+    - sensor.dafang3_light_sensor
+    - switch.dafang3_ir_filter
+    - switch.dafang3_ir_led
+    - switch.dafang3_night_mode
+    - switch.dafang3_night_mode_auto
+    - switch.dafang3_blue_led
+    - switch.dafang3_yellow_led
+    - switch.dafang3_motion_detection
+    - switch.dafang3_motion_tracking
+    - camera.dafang3_motion_snapshot
+    - binary_sensor.dafang3_motion_sensor
+    - cover.dafang3_move_left_right
+    - cover.dafang3_move_up_down
+    
+Google Home Group:
+    name: Google Home Group
+    entities:
+      - media_player.badkamer
+      - media_player.keuken_hub
+      
+Entry Points:
+  - binary_sensor.bijkeukendeur
+  - binary_sensor.dakraam_badkamer
+  - binary_sensor.dakraam_chillkamer
+  - binary_sensor.dakraam_slaapkamer
+  - binary_sensor.dakraam_zolder
+  - binary_sensor.deur_balkon_kamer_nienke
+  - binary_sensor.deur_slaapkamer_balkon
+  - binary_sensor.eetkamerdeur
+  - binary_sensor.garagedeur_tuinkant
+  - binary_sensor.voordeur
+  - binary_sensor.woonkamerdeur
