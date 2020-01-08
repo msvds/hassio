@@ -44,3 +44,16 @@ Google Home Group:
     entities:
       - media_player.badkamer
       - media_player.keuken_hub
+      
+Entry Points:
+  - binary_sensor.bijkeukendeur
+  - binary_sensor.dakraam_badkamer
+  - binary_sensor.dakraam_chillkamer
+  - binary_sensor.dakraam_slaapkamer
+  - binary_sensor.dakraam_zolder
+  - binary_sensor.deur_balkon_kamer_nienke
+  - binary_sensor.deur_slaapkamer_balkon
+  - binary_sensor.eetkamerdeur
+  - binary_sensor.garagedeur_tuinkant
+  - binary_sensor.voordeur
+  - binary_sensor.woonkamerdeur

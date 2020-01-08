@@ -21,7 +21,7 @@
       color_temp: 500
       entity_id:
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.boventv
       - light.lampen_eetkamertafel
       - light.sonoff_schemerlamp_n_bank
@@ -98,7 +98,7 @@
       - light.sonoff_voord_lamp
       - light.garagelamp
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.boventv
       - light.lampen_eetkamertafel
       - light.sonoff_schemerlamp_n_bank
@@ -182,75 +182,6 @@
       entity_id:
       - light.lampen_kamer_nienke
     service: light.turn_off
-- id: '1564906585663'
-  alias: Switch Eetkamertafel Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_eetktafel
-      event: 1002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      color_temp: 328
-      entity_id:
-      - light.lampen_eetkamertafel
-    service: light.toggle
-- id: '1564907251184'
-  alias: Switch Left Keuken Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_keuken
-      event: 1002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      entity_id:
-      - light.lampen_keuken_zonder_bar
-    service: light.toggle
-- id: '1564907902782'
-  alias: Switch Right Keuken Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_keuken
-      event: 2002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      entity_id:
-      - light.group_bar
-    service: light.toggle
-- id: '1564923371098'
-  alias: Switch Lampen TV Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_boventv
-      event: 1002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      entity_id:
-      - light.boventv
-    service: light.toggle
 - id: '1565110930712'
   alias: Switch Woonkamerdeur lichten uit
   trigger:
@@ -271,6 +202,11 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb de lampen in de woonkamer voor je uitgezet
+      language: nl
+    entity_id: group.google_home_group
 - id: '15651109342342342'
   alias: Switch Eetkamerdeur lichten uit
   trigger:
@@ -291,6 +227,11 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb de lampen in de woonkamer voor je uitgezet
+      language: nl
+    entity_id: group.google_home_group
 - id: knop chillkamer single click
   alias: Switch chillkamer single click
   trigger:
@@ -601,7 +542,14 @@
 
       '
   - condition: template
-    value_template: '{% set last_triggered = states.automation.switch_bed_single_click.attributes.last_triggered
+    value_template: '{% set last_triggered = states.automation.switch_bed_single_click_avond.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > states.input_number.condition_motion_lights_on_woonkamer_minutes.state
+      | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_bed_single_click_dag.attributes.last_triggered
       %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
       | int /60) > states.input_number.condition_motion_lights_on_woonkamer_minutes.state
       | int}}
@@ -683,7 +631,7 @@
       entity_id: light.lampen_woonkamer
     service: light.turn_on
   - data_template:
-      brightness: '{{ 50 if states.light.lampen_keuken.state == "off" else states.light.group_bar.attributes.brightness
+      brightness: '{{ 50 if states.light.lampen_keuken.state == "off" else states.light.bar.attributes.brightness
         }}'
       entity_id: light.lampen_keuken
     service: light.turn_on
@@ -1015,12 +963,12 @@
     to: 'on'
   condition:
   - condition: state
-    entity_id: light.zolder_lampen_2
+    entity_id: light.zolder_lampen
     state: 'off'
   - condition: template
     value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   - condition: template
-    value_template: '{{((as_timestamp(now())-as_timestamp(states.light.zolder_lampen_2.last_updated))
+    value_template: '{{((as_timestamp(now())-as_timestamp(states.light.zolder_lampen.last_updated))
       | int /60) > states.input_number.condition_motion_lights_on_zolder_minutes.state
       | int}}'
   - condition: template
@@ -1033,7 +981,7 @@
   action:
   - data:
       entity_id:
-      - light.zolder_lampen_2
+      - light.zolder_lampen
     service: light.turn_on
 - id: 1567sdfsdfs2
   alias: Motion Lights Off Lichten Hal Boven
@@ -1062,12 +1010,12 @@
     to: 'off'
   condition:
   - condition: state
-    entity_id: light.zolder_lampen_2
+    entity_id: light.zolder_lampen
     state: 'on'
   action:
   - data:
       entity_id:
-      - light.zolder_lampen_2
+      - light.zolder_lampen
     service: light.turn_off
 - id: 156hfgdfgdfdgs2
   alias: Motion Lights Off Lichten Chillkamer
@@ -1164,40 +1112,6 @@
       entity_id:
       - light.lamp_wc_boven
     service: light.turn_off
-- id: '1566550425748'
-  alias: Switch Left Hal Beneden Midden Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_halbenedenm
-      event: 1002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      entity_id:
-      - light.lampen_hal
-    service: light.toggle
-- id: '1566550506042'
-  alias: Switch Right Hal Beneden Midden Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_halbenedenm
-      event: 2002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      entity_id:
-      - light.entree
-    service: light.toggle
 - id: '1566551256211'
   alias: Switch Left Slaapkamer
   trigger:
@@ -1210,25 +1124,6 @@
   action:
   - data:
       entity_id: light.lampen_naast_bed
-    service: light.toggle
-- id: '1566551338466'
-  alias: Switch Right Slaapkamer Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: tr_slaapkamer
-      event: 2002
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      transition: 1
-      brightness_pct: 100
-      kelvin: 2000
-      entity_id:
-      - light.slaapkamerlamp
     service: light.toggle
 - id: '1566553107821'
   alias: Switch Hal Beneden Links
@@ -1336,51 +1231,14 @@
     to: 'on'
   condition: []
   action:
+  - service: script.speech_engine
+    data:
+      call_update: 1
   - data:
       message: Home Assistant {{ state_attr('binary_sensor.updater', 'newest_version')
         }} is now available.
       title: New Home Assistant Release
     service: notify.pushbullet
-- id: '1567077750196'
-  alias: Switch Woonkamerdeur lichten aan Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: smart_switch_woonkamer
-      event: 1003
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      color_temp: 328
-      entity_id:
-      - light.lampen_eetkamertafel
-      - light.lampen_woonkamer
-      - light.lampen_keuken
-    service: light.turn_on
-- id: '1567077534534536'
-  alias: Switch Eetkamerdeur lichten aan Dag
-  trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: smart_switch_eetkamer
-      event: 1003
-  condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state != "below_horizon"}}'
-  action:
-  - data:
-      brightness: 200
-      color_temp: 328
-      entity_id:
-      - light.lampen_eetkamertafel
-      - light.lampen_woonkamer
-      - light.lampen_keuken
-    service: light.turn_on
 - id: '1567163961466'
   alias: Timer Lights Off Lars wanneer zelf aangezet week
   trigger:
@@ -1464,7 +1322,7 @@
   condition: []
   action:
   - data:
-      entity_id: light.zolder_lampen_2
+      entity_id: light.zolder_lampen
     service: light.toggle
 - id: '1567403831598'
   alias: Alarm Fire hal boven
@@ -1535,7 +1393,7 @@
   action:
   - data:
       entity_id:
-      - switch.apparatuur_chillkamer_switch
+      - switch.apparatuur_chillkamer
     service: switch.turn_off
 - id: '1567404090182'
   alias: 'Timer Lights On Apparatuur Chillkamer '
@@ -1546,7 +1404,7 @@
   action:
   - data:
       entity_id:
-      - switch.apparatuur_chillkamer_switch
+      - switch.apparatuur_chillkamer
     service: switch.turn_on
 - id: '1567404908864'
   alias: Alert Window Dakraam badkamer open bij regen voorspelling
@@ -1693,7 +1551,7 @@
         position: center
         interrupt: 0
 - id: '1567498146613'
-  alias: Switch Eetkamertafel Donker
+  alias: Switch Eetkamertafel
   trigger:
     platform: event
     event_type: deconz_event
@@ -1701,17 +1559,18 @@
       id: tr_eetktafel
       event: 1002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      color_temp: 500
-      entity_id:
-      - light.lampen_eetkamertafel
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_eetkamertafel.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      color_temp: '{%set last_triggered = states.automation.switch_eetkamertafel.attributes.last_triggered
+        %} {{500 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 328}}'
+      entity_id: light.lampen_eetkamertafel
     service: light.toggle
 - id: '1567498750920'
-  alias: Switch Lampen TV Donker
+  alias: Switch Lampen TV
   trigger:
     platform: event
     event_type: deconz_event
@@ -1719,17 +1578,18 @@
       id: tr_boventv
       event: 1002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      color_temp: 480
-      entity_id:
-      - light.boventv
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_lampen_tv.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      color_temp: '{%set last_triggered = states.automation.switch_lampen_tv.attributes.last_triggered
+        %} {{500 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 328}}'
+      entity_id: light.boventv
     service: light.toggle
 - id: '1567499031613'
-  alias: Switch Right Keuken Donker
+  alias: Switch Right Keuken
   trigger:
     platform: event
     event_type: deconz_event
@@ -1737,16 +1597,15 @@
       id: tr_keuken
       event: 2002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      entity_id:
-      - light.group_bar
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_right_keuken.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      entity_id: light.bar
     service: light.toggle
 - id: '1567499187287'
-  alias: Switch Left Keuken Donker
+  alias: Switch Left Keuken
   trigger:
     platform: event
     event_type: deconz_event
@@ -1754,16 +1613,15 @@
       id: tr_keuken
       event: 1002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      entity_id:
-      - light.lampen_keuken_zonder_bar
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_left_keuken.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      entity_id: light.lampen_keuken_zonder_bar
     service: light.toggle
 - id: '1567499447359'
-  alias: Switch Right Hal Beneden Midden Donker
+  alias: Switch Right Hal Beneden Midden
   trigger:
     platform: event
     event_type: deconz_event
@@ -1771,16 +1629,15 @@
       id: tr_halbenedenm
       event: 2002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      entity_id:
-      - light.entree
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_right_hal_beneden_midden.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      entity_id: light.entree
     service: light.toggle
 - id: '1567499560704'
-  alias: Switch Left Hal Beneden Midden Donker
+  alias: Switch Left Hal Beneden Midden
   trigger:
     platform: event
     event_type: deconz_event
@@ -1788,16 +1645,15 @@
       id: tr_halbenedenm
       event: 1002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      entity_id:
-      - light.lampen_hal
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_left_hal_beneden_midden.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      entity_id: light.lampen_hal
     service: light.toggle
 - id: '1567499748758'
-  alias: Switch Right Slaapkamer Donker
+  alias: Switch Right Slaapkamer
   trigger:
     platform: event
     event_type: deconz_event
@@ -1805,18 +1661,17 @@
       id: tr_slaapkamer
       event: 2002
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
+  - data_template:
+      brightness_pct: '{%set last_triggered = states.automation.switch_right_slaapkamer.attributes.last_triggered
+        %} {{20 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 100}}'
       transition: 1
-      brightness_pct: 20
       kelvin: 2000
-      entity_id:
-      - light.slaapkamerlamp
+      entity_id: light.slaapkamerlamp
     service: light.toggle
 - id: '1567499930968'
-  alias: Switch Woonkamerdeur lichten aan Donker
+  alias: Switch Woonkamerdeur lichten aan
   trigger:
     platform: event
     event_type: deconz_event
@@ -1824,19 +1679,26 @@
       id: smart_switch_woonkamer
       event: 1003
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      color_temp: 500
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_woonkamerdeur_lichten_aan.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      color_temp: '{%set last_triggered = states.automation.switch_woonkamerdeur_lichten_aan.attributes.last_triggered
+        %} {{500 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 328}}'
       entity_id:
       - light.lampen_eetkamertafel
       - light.lampen_woonkamer
       - light.lampen_keuken
     service: light.turn_on
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      language: nl
+    entity_id: group.google_home_group
 - id: '1567645645668'
-  alias: Switch Eetkamerdeur lichten aan Donker
+  alias: Switch Eetkamerdeur lichten aan
   trigger:
     platform: event
     event_type: deconz_event
@@ -1844,17 +1706,24 @@
       id: smart_switch_eetkamer
       event: 1003
   condition:
-  - condition: template
-    value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
-  - data:
-      brightness: 50
-      color_temp: 500
+  - data_template:
+      brightness: '{%set last_triggered = states.automation.switch_eetkamerdeur_lichten_aan.attributes.last_triggered
+        %} {{50 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 200}}'
+      color_temp: '{%set last_triggered = states.automation.switch_eetkamerdeur_lichten_aan.attributes.last_triggered
+        %} {{500 if last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+        | int ) > 2 and states.sun.sun.state == "below_horizon" else 328}}'
       entity_id:
       - light.lampen_eetkamertafel
       - light.lampen_woonkamer
       - light.lampen_keuken
     service: light.turn_on
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      language: nl
+    entity_id: group.google_home_group
 - id: '1567502350372'
   alias: Miscellaneous Test timer
   trigger:
@@ -1866,7 +1735,7 @@
   - data:
       brightness: 200
       entity_id:
-      - light.group_bar
+      - light.bar
     service: light.toggle
   - delay: 00:00:05
   - service: timer.pause
@@ -2905,7 +2774,7 @@
     to: 'on'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data:
@@ -2920,7 +2789,7 @@
     to: 'off'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data:
@@ -3155,10 +3024,18 @@
       entity_id: alarm_control_panel.home_alarm
       code: 1234
     service: alarm_control_panel.alarm_disarm
-  - service: input_select.select_option
-    entity_id: input_select.house_mode
-    data:
-      option: Home
+  - data_template:
+      option: '{% if states.timer.guests_timer.state != "idle" -%}
+		  Guests
+		{%- elif states.timer.extended_away_timer.state != "idle" -%}
+		  Extended Away
+		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
+		  Kids Home Alone
+		{%- else -%}
+		  Home
+		{%- endif %}'
+      entity_id: input_select.house_mode
+    service: input_select.select_option
 - id: '1569219751396'
   alias: Alarm House Deur open bij arm away
   trigger:
@@ -3187,23 +3064,20 @@
   - condition: state
     entity_id: alarm_control_panel.home_alarm
     state: armed_away
+  - condition: template
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_alarm_siren.state
+      | int}} '
   action:
-  - service: camera.record
-    data:
-      entity_id: camera.dafang_camera_1
-      filename: /config/video/alarm_house_deur_open_{{ now().strftime("%Y%m%d-%H%M%S")
-        }}.mp4
-      duration: 1200
   - service: alarm_control_panel.alarm_trigger
     entity_id: alarm_control_panel.home_alarm
   - data:
       message: ALARM! Het alarm is getriggered doordat een deur is geopend! Er is
-        1 min om het alarm te deactiveren
+        1 minuut om het alarm te deactiveren
       title: ALARM
     service: notify.pushbullet
   - data:
       message: ALARM! Het alarm is getriggered doordat een deur is geopend! Er is
-        1 min om het alarm te deactiveren
+        1 minuut om het alarm te deactiveren
       title: ALARM
     service: notify.pushbullet_suzanne
   - service: media_player.volume_set
@@ -3212,7 +3086,121 @@
       volume_level: 0.9
   - service: tts.google_translate_say
     data_template:
-      message: Beweging gedetecteerd. Er is 1 min om het alarm te deactiveren
+      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      language: nl
+    entity_id: group.google_home_group
+  - service: media_player.volume_set
+    data_template:
+      entity_id: group.google_home_group
+      volume_level: 0.5
+- id: '156942534534396'
+  alias: Alarm House Beweging bij arm away
+  trigger:
+  - entity_id: binary_sensor.presence_garage
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_balkon
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_keuken
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_woonkamer
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_badkamer
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_chillkamer
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_hal_boven
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_kamer_lars
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_kamer_nienke
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_zolder
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: alarm_control_panel.home_alarm
+    state: armed_away
+  - condition: template
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_alarm_siren.state
+      | int}} '
+  action:
+  - service: alarm_control_panel.alarm_trigger
+    entity_id: alarm_control_panel.home_alarm
+  - data:
+      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
+        Er is 1 minuut om het alarm te deactiveren
+      title: ALARM
+    service: notify.pushbullet
+  - data:
+      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
+        Er is 1 minuut om het alarm te deactiveren
+      title: ALARM
+    service: notify.pushbullet_suzanne
+  - service: media_player.volume_set
+    data_template:
+      entity_id: group.google_home_group
+      volume_level: 0.9
+  - service: tts.google_translate_say
+    data_template:
+      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      language: nl
+    entity_id: group.google_home_group
+  - service: media_player.volume_set
+    data_template:
+      entity_id: group.google_home_group
+      volume_level: 0.5
+- id: 15694tertet4396
+  alias: Alarm House Beweging bij arm home
+  trigger:
+  - entity_id: binary_sensor.presence_garage
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_balkon
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_keuken
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.presence_woonkamer
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: alarm_control_panel.home_alarm
+    state: armed_home
+  - condition: template
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_alarm_siren.state
+      | int}}'
+  action:
+  - service: alarm_control_panel.alarm_trigger
+    entity_id: alarm_control_panel.home_alarm
+  - data:
+      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
+        Er is 1 minuut om het alarm te deactiveren
+      title: ALARM
+    service: notify.pushbullet
+  - data:
+      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
+        Er is 1 minuut om het alarm te deactiveren
+      title: ALARM
+    service: notify.pushbullet_suzanne
+  - service: media_player.volume_set
+    data_template:
+      entity_id: group.google_home_group
+      volume_level: 0.9
+  - service: tts.google_translate_say
+    data_template:
+      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
       language: nl
     entity_id: group.google_home_group
   - service: media_player.volume_set
@@ -3303,10 +3291,23 @@
       entity_id: alarm_control_panel.home_alarm
       code: 1234
     service: alarm_control_panel.alarm_disarm
-  - service: input_select.select_option
-    entity_id: input_select.house_mode
-    data:
-      option: Home
+  - data_template:
+      option: '{% if states.timer.guests_timer.state != "idle" -%}
+		  Guests
+		{%- elif states.timer.extended_away_timer.state != "idle" -%}
+		  Extended Away
+		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
+		  Kids Home Alone
+		{%- else -%}
+		  Home
+		{%- endif %}'
+      entity_id: input_select.house_mode
+    service: input_select.select_option
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb het alarm voor je uitgezet
+      language: nl
+    entity_id: group.google_home_group
 - id: 15674fsdfsddfgd9
   alias: Alarm House Disarm Alarm in de ochtend
   trigger:
@@ -3320,16 +3321,40 @@
       entity_id: alarm_control_panel.home_alarm
       code: 1234
     service: alarm_control_panel.alarm_disarm
-  - service: input_select.select_option
-    entity_id: input_select.house_mode
-    data:
-      option: Home
+  - data_template:
+      option: '{% if states.timer.guests_timer.state != "idle" -%}
+		  Guests
+		{%- elif states.timer.extended_away_timer.state != "idle" -%}
+		  Extended Away
+		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
+		  Kids Home Alone
+		{%- else -%}
+		  Home
+		{%- endif %}'
+      entity_id: input_select.house_mode
+    service: input_select.select_option
+- id: 1568fsdfsdfsfd9
+  alias: Alarm House Start Siren to sound the alarm
+  trigger:
+  - platform: state
+    entity_id: alarm_control_panel.home_alarm
+    to: triggered
+  action:
+  - service: tts.google_translate_say
+    data_template:
+      message: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop
+        de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
+      language: nl
+    entity_id: group.google_home_group
+  - service: notify.pushbullet
+    data_template:
+      message: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop
+        de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
 - id: '15653453453046'
   alias: Notification ijskrabben google home
   trigger:
-  - entity_id: binary_sensor.presence_keuken
-    platform: state
-    to: 'on'
+  - at: 07:50:00
+    platform: time
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "6:30" and states.sensor.time.state
@@ -3350,9 +3375,8 @@
 - id: '1569225894046'
   alias: Notification trash today google home
   trigger:
-  - entity_id: binary_sensor.presence_keuken
-    platform: state
-    to: 'on'
+  - at: 07:52:00
+    platform: time
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "7:00" and states.sensor.time.state
@@ -3649,6 +3673,8 @@
     platform: state
     to: Aldi Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3667,6 +3693,8 @@
     platform: state
     to: Aldi Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3685,6 +3713,8 @@
     platform: state
     to: AH Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3703,6 +3733,8 @@
     platform: state
     to: AH Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3721,6 +3753,8 @@
     platform: state
     to: Action Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3740,6 +3774,8 @@
     platform: state
     to: Action Zevenbergen
   condition:
+  - condition: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3758,6 +3794,8 @@
     platform: state
     to: Hornbach Breda
   condition:
+  - condition: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3776,6 +3814,8 @@
     platform: state
     to: Hornbach Breda
   condition:
+  - condition: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3794,6 +3834,8 @@
     platform: state
     to: IKEA Breda
   condition:
+  - condition: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3812,6 +3854,8 @@
     platform: state
     to: IKEA Breda
   condition:
+  - condition: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
   - service: tts.google_translate_say
     data_template:
@@ -3826,13 +3870,13 @@
   alias: Notification Humidity woonkamer 1
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_keuken.state | int > 65}}'
+    value_template: '{{states.sensor.hum_keuken.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_keuken.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -3843,14 +3887,14 @@
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
+        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
       title: Hoge vochtigheid woonkamer
     service: notify.pushbullet
   - data_template:
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
+        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
       title: Hoge vochtigheid woonkamer
     service: notify.pushbullet_suzanne
   - data_template:
@@ -3858,20 +3902,20 @@
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
+        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: '1564536456424274'
   alias: Notification Humidity woonkamer 2
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_keuken.state | int > 65}}'
+    value_template: '{{states.sensor.hum_keuken.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_keuken.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -3882,14 +3926,14 @@
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
+        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
       title: Hoge vochtigheid woonkamer
     service: notify.pushbullet
   - data_template:
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
+        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
       title: Hoge vochtigheid woonkamer
     service: notify.pushbullet_suzanne
   - data_template:
@@ -3897,20 +3941,20 @@
       message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
         {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
         lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
+        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
     entity_id: group.google_home_group
     service: tts.google_translate_say
 - id: 1564536gdfgd74
   alias: Notification Humidity kamer lars 1
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_lars.state | int > 65}}'
+    value_template: '{{states.sensor.hum_kamer_lars.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_kamer_lars.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -3943,13 +3987,13 @@
   alias: Notification Humidity kamer lars 2
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_lars.state | int > 65}}'
+    value_template: '{{states.sensor.hum_kamer_lars.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_kamer_lars.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -3982,13 +4026,13 @@
   alias: Notification Humidity kamer nienke 1
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 65}}'
+    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_kamer_nienke.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4021,13 +4065,13 @@
   alias: Notification Humidity kamer nienke 2
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 65}}'
+    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 70}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_kamer_nienke.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4060,13 +4104,13 @@
   alias: Notification Humidity bijkeuken 1
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_bijkeuken.state | int > 65}}'
+    value_template: '{{states.sensor.hum_bijkeuken.state | int > 95}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_bijkeuken.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4099,13 +4143,13 @@
   alias: Notification Humidity bijkeuken 2
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_bijkeuken.state | int > 65}}'
+    value_template: '{{states.sensor.hum_bijkeuken.state | int > 95}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_bijkeuken.state
       | int}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4141,7 +4185,7 @@
     value_template: '{{states.sensor.toon_gas_used_last_hour.state | float > 1.0}}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4150,19 +4194,19 @@
   action:
   - data_template:
       message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float)*1000 }} liter
+        | float *1000 ) |int }} liter
       title: Hoog Gasverbruik
     service: notify.pushbullet
   - data_template:
       language: nl
       message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float)*1000 }} liter
+        | float *1000 ) |int }} liter
     entity_id: group.google_home_group
     service: tts.google_translate_say
   - service: notify.woonkamerandroidtv
     data:
       message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float)*1000 }} liter
+        | float *1000 ) |int }} liter
       title: Hoog Gasverbruik
       data:
         fontsize: large
@@ -4176,7 +4220,7 @@
     value_template: '{{states.sensor.toon_p1_power_use.state | int > 5000}}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4185,19 +4229,19 @@
   action:
   - data_template:
       message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
-        {{states.sensor.toon_p1_power_use.state | int}} kW
+        {{states.sensor.toon_p1_power_use.state | int}} W
       title: Hoog Electriciteitsverbruik
     service: notify.pushbullet
   - data_template:
       language: nl
       message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
-        {{states.sensor.toon_p1_power_use.state | int}} kilowatt
+        {{states.sensor.toon_p1_power_use.state | int}} watt
     entity_id: group.google_home_group
     service: tts.google_translate_say
   - service: notify.woonkamerandroidtv
     data:
       message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
-        {{states.sensor.toon_p1_power_use.state | int}} kW
+        {{states.sensor.toon_p1_power_use.state | int}} W
       title: Hoog Electriciteitsverbruik
       data:
         fontsize: large
@@ -4214,7 +4258,7 @@
     value_template: '{{states.sensor.br_temperature.state | float > states.sensor.toon_room_temp.state
       | float}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4250,7 +4294,7 @@
     value_template: '{{states.sensor.br_temperature.state | float < states.sensor.toon_room_temp.state
       | float}}'
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4283,7 +4327,7 @@
     value_template: '{{states.sensor.temp_garage.state | float < 0 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4308,7 +4352,7 @@
     value_template: '{{states.sensor.temp_bijkeuken.state | float < 0 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4333,7 +4377,7 @@
     value_template: '{{states.sensor.br_temperature.state | float < -8 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4359,7 +4403,7 @@
       | float > 3 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4387,7 +4431,7 @@
       | float > 15 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4415,7 +4459,7 @@
       | float > 3 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4443,7 +4487,7 @@
       | float > 15 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data_template:
@@ -4467,7 +4511,7 @@
       | float > 3 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4495,7 +4539,7 @@
       | float > 15 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data_template:
@@ -4521,7 +4565,7 @@
       | float > 3 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4549,7 +4593,7 @@
       | float > 15 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data_template:
@@ -4573,7 +4617,7 @@
       | float > 3 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
@@ -4601,7 +4645,7 @@
       | float > 15 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.sensor.condition_time_online_minutes_for_notifications.state
+    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
   action:
   - data_template:
@@ -4727,13 +4771,17 @@
     platform: event
     event_type: state_changed
   condition:
-    condition: template
+  - condition: template
     value_template: "{% set skip_list = ['miscellaneous_automation_ran', 'miscellaneous_automation_ran_2',\
       \ 'miscellaneous_automation_ran_3',\n                     'miscellaneous_automation_ran_4',\
       \ 'miscellaneous_automation_ran_5',\n                     'miscellaneous_automation_ran_6']\
       \ %}\n{{ trigger.event.data.entity_id.startswith('automation.') and\n   trigger.event.data.entity_id.split('.')[1]\
       \ not in skip_list and\n   'old_state' in trigger.event.data and 'new_state'\
       \ in trigger.event.data }}\n"
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.miscellaneous_automation_ran.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int ) > 30}}'
   action:
   - condition: template
     value_template: "{{ trigger.event.data.new_state.attributes.last_triggered !=\n\
@@ -5151,6 +5199,12 @@
         [5:7] | int + 60 | int * 60) | timestamp_custom("%H:%M:%S", false) }}'
       entity_id: timer.fan_on_timer
     service: timer.start
+  - service: tts.google_translate_say
+    data_template:
+      message: Ik heb de verwarming in de badkamer en de ventilatie voor je aangezet.
+        Veel plezier in bad
+      language: nl
+    entity_id: group.google_home_group
 - id: '15769768768324'
   alias: Miscellaneous zacht licht on
   description: ''
@@ -5165,7 +5219,7 @@
       color_temp: 500
       entity_id:
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.boventv
       - light.lampen_eetkamertafel
       - light.sonoff_schemerlamp_n_bank
@@ -5193,7 +5247,7 @@
       color_temp: 500
       entity_id:
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.boventv
       - light.lampen_eetkamertafel
       - light.sonoff_schemerlamp_n_bank
@@ -5221,7 +5275,7 @@
       color_temp: 500
       entity_id:
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.boventv
       - light.lampen_eetkamertafel
       - light.sonoff_schemerlamp_n_bank
@@ -5460,11 +5514,205 @@
   - entity_id: sensor.ap_ac_iw_third_floor
     for: 00:10:00
     platform: state
-    to: '"offline"'
+    to: offline
   condition:
   action:
   - data:
       message: AP Derde Verdieping is nu al 10 minuten offline
       title: AP Derde Verdieping offline
     service: notify.pushbullet
+- id: 1hfghfgh4536
+  alias: Notification NAS offline
+  trigger:
+  - entity_id: sensor.nas_schoot
+    for: 00:10:00
+    platform: state
+    to: offline
+  condition:
+  action:
+  - data:
+      message: De NAS is nu al 10 minuten offline
+      title: NAS offline
+    service: notify.pushbullet
+- id: 1553hfghfgh36
+  alias: Notification NAS smart status
+  trigger:
+  - entity_id: sensor.nas_schoot_smart_status_drive_0_1
+    platform: state
+    from: OK
+  - entity_id: sensor.nas_schoot_smart_status_drive_0_2
+    platform: state
+    from: OK
+  condition:
+  action:
+  - data:
+      message: Het lijkt erop dat een van de schijven van de NAS aan het degraderen
+        is
+      title: NAS schijf probleem
+    service: notify.pushbullet
+- id: 1553hfghfgh6
+  alias: Notification NAS disk problem
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.nas_schoot_volume_used_datavol1.state | int >
+      95}}'
+  condition:
+  action:
+  - data:
+      message: De schijven van de NAS zijn meer dan 95% vol. Er moet nu echt iets
+        aan gedaan worden
+      title: NAS schijf vol
+    service: notify.pushbullet
+- id: 1553hfghfg536
+  alias: Notification NAS temp too high
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.nas_schoot_system_temperature.state | int > 50}}'
+  condition:
+  action:
+  - data:
+      message: De NAS temperatuur is hoger dan 50 graden. Dat lijkt me een beetje
+        hoog, graag checken
+      title: NAS temperatuur hoog
+    service: notify.pushbullet
+- id: 1553dasdasfg536
+  alias: Notification Unifi Gateway Alerts
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.unifi_gateway_alerts.state | int > 0}}'
+  condition:
+  action:
+  - data:
+      message: Let op, er is een alert op de Unifi Gateway
+      title: Unifi Gateway Alert
+    service: notify.pushbullet
+- id: 587gdfgfd5875
+  alias: Notification Unifi Firmware Update
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.unifi_gateway_firmware_upgradable.state | int
+      > 0}}'
+  condition:
+  action:
+  - data:
+      message: De firmware van een van de Unifi devices kun je upgraden
+      title: Unifi Gateway Firmware Update
+    service: notify.pushbullet
+- id: 587gdfsdfs875
+  alias: Notification HACS Update
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.hacs.state | int > 0}}'
+  condition:
+  action:
+  - data:
+      message: Er is een upgrade beschikbaar van een Home Assistant Community Store
+        component
+      title: Home Assistant Community Store Update
+    service: notify.pushbullet
+- id: 587gtertert875
+  alias: Miscellaneous Cast HASSIO Cube 180 deg flip
+  description: 180 deg draaien
+  trigger:
+  - event_data:
+      id: cube_keuken
+    event_type: deconz_event
+    platform: event
+  condition:
+  - condition: template
+    value_template: '{% set valid_events = [1006, 6001, 2005, 5002, 3004, 4003] %}
+      {{ trigger.event.data.event in valid_events }}
 
+      '
+  action:
+  - data:
+      entity_id: media_player.keuken_hub
+      view_path: default_view
+    service: cast.show_lovelace_view
+- id: 587hfghdfh
+  alias: Notification GPS signal lost
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.martijn_gps_accuracy.state ==  none}}'
+  condition:
+  action:
+  - data:
+      message: Het lijkt erop dat de locatie van Martijn in Google Maps niet meer
+        goed gedeeld wordt. Graag aanpassen
+    service: notify.pushbullet
+- id: 587hfghdfh
+  alias: Notification GPS signal lost Suzanne
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.suzanne_gps_accuracy.state ==  none}}'
+  condition:
+  action:
+  - data:
+      message: Het lijkt erop dat de locatie van Suzanne in Google Maps niet meer
+        goed gedeeld wordt. Graag aanpassen
+    service: notify.pushbullet
+- id: 587hfghdfh
+  alias: People Greeting
+  trigger:
+    platform: state
+    entity_id: person.martijn
+    to: home
+    for:
+      minutes: 3
+  action:
+    service: script.arrive_greetings
+    data_template:
+      personarriving: '{% set person = trigger.entity_id.split(''.'')[1]|replace(''_'',
+        '' '')%} {%- macro greeting_sentence(person) -%} {{ [ "Welkom terug " ~ person,
+        "Raad eens wie thuis is?" ~ person +" is thuis!", person + " is nu in huis.",
+        "Welkom thuis " ~ person + ". Ik heb je gemist.", "Hoi " ~ person + " Welkom
+        thuis!", "Klop, klop. Wie is daar? "   ~ person +" is het!", person ~ "! Je
+        bent thuis!", person + " can not hide from the system. Welcome home.", person
+        ~ "! You are home!", "I know a secret! "  ~ person +" is home!", "Hey "  ~
+        person +". Your arrival has been recorded by the Smartest house on the block.",
+        "Take note Molly! "  ~ person +" is home.", "I am sensing a disturbance in
+        the force. "  ~ person +" must be home!", "And the house becomes a home. Welcome
+        back " ~ person, person + " is now here.  Hash tag Welcome Home.", person
+        + " is now here.  Hash tag Home.", person + " is now here.  Hash tag Smart
+        Home.", "Just a quick announcement. " ~ person +" has arrived!", "Pardon the
+        interruption but " ~ person +" is home!", "My systems are picking up the presence
+        of additional humans. " ~ person +" has been identified as home.", "Welcome
+        home "~person~"! It is nice to see you again! Let me turn on the lights. ",
+        "It looks like "~person~" is finally home! I will get the house ready for
+        you. " ] | random }} {%- endmacro -%} {{greeting_sentence(person)}}
+
+        '
+      call_responsibilities: 1
+      call_no_announcement: 1
+      call_garage_check: 1
+      call_window_check: 1
+- id: 587hfgdhddfh
+  alias: People Greeting test
+  trigger:
+  - entity_id: person.martijn
+    platform: state
+    to: home
+  action:
+  - service: script.speech_engine
+    data_template:
+      personarriving: '{% set person = "Martijn" %} {%- macro greeting_sentence(person)
+        -%} {{ [ "Welkom terug " ~ person, "Raad eens wie thuis is?" ~ person +" is
+        thuis!", person + " is nu in huis.", "Welkom thuis " ~ person + ". Ik heb
+        je gemist.", "Hoi " ~ person + " Welkom thuis!", "Klop, klop. Wie is daar?
+        "   ~ person +" is het!", person ~ "! Je bent thuis!", person + " kan zich
+        niet verstoppen voor mij. Welkom thuis.", "Ik weet een geheimpje! "  ~ person
+        +" is thuis!", "Hey "  ~ person +". Je thuiskomst is geregistreerd door het
+        slimste huis van de straat.", "Let op Lars en Nienke! "  ~ person +" is thuis.",
+        "Ik voel een verstoring in the force. "  ~ person +" zal wel thuis moeten
+        zijn!", "Alleen maar een snelle aankondiging. " ~ person +" is gearriveerd!",
+        "Sorry voor de onderbreking, maar " ~ person +" is thuis!", "Mijn systemen
+        nemen de aanwezigheid van extra mensen op. " ~ person +" is geïdentificeerd
+        als thuis.", "Welkom thuis "~person~"! Het is goed je weer te zien. ", "Het
+        lijkt erop dat "~person~" eindelijk thuis is! Ik maak het huis klaar voor
+        je. " ] | random }} {%- endmacro -%} {{greeting_sentence(person)}}
+
+        '
+      call_garage_check: 1
+      call_no_announcement: 1
+      call_responsibilities: 1
+      call_window_check: 1

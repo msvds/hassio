@@ -178,8 +178,6 @@ yeelight:
       name: Yeelight eetkamertafel 1
     192.168.178.250:
       name: Yeelight eetkamertafel 2
-    192.168.178.253:
-      name: Yeelight slaapkamer
 
 timer:
   fan_on_timer:
@@ -209,7 +207,11 @@ python_script:
 
 #zigbee2mqtt_networkmap:
 #   #topic: your topic (optional, default zigbee2mqtt)
-#panel_iframe:
+panel_iframe:
+  ide:
+    title: IDE
+    icon: mdi:code-braces
+    url: !secret IDE_url
 #  networkmap:
 #    title: 'Zigbee Map'
 #    url: '/local/community/zigbee2mqtt_networkmap/map.html'
@@ -238,6 +240,8 @@ camera:
     input: -rtsp_transport tcp -i rtsp://192.168.1.235:8554/unicast
     
 binary_sensor:
+  - platform: iss
+    show_on_map: true
   - platform: workday
     country: NL
     workdays: [mon, tue, wed, thu, fri]
@@ -426,6 +430,14 @@ input_boolean:
     name: Normaal licht
   fel_licht:
     name: Fel licht
+  home_stats:
+    name: Huis statistieken
+  responsibilities:
+    name: Verantwoordelijkheden
+  speech_notifications:
+  alert_mode:
+  lastmsg:
+  
 #  guest_mode:
 #    name: Gasten aanwezig
 #    initial: off
@@ -635,7 +647,7 @@ input_datetime:
   kerst:
     has_time: false
     has_date: true
-    initial: '2019-12-25'
+    initial: '2020-12-25'
     name: 'Kerst'
   sinterklaas:
     has_time: false
@@ -650,7 +662,7 @@ input_datetime:
   kerstvakantie:
     has_time: false
     has_date: true
-    initial: '2019-12-21'
+    initial: '2020-12-23'
     name: 'Kerstvakantie'
   carnavalvakantie:
     has_time: false
@@ -926,6 +938,13 @@ input_number:
     min: 1
     max: 30
     step: 1
+  condition_time_online_minutes_for_alarm_siren:
+    name: Minimum minutes online of HASS before alarm can go off
+    icon: mdi:clock-start
+    #initial: 5
+    min: 1
+    max: 30
+    step: 1
   thuis_eco_on:
     name: Thuis Temp Eco On
     max: 22
@@ -975,7 +994,7 @@ light:
     entity_id: switch.lampen_chillkamer
   - platform: switch
     name: Lamp Hal Boven
-    entity_id: switch.lamp_hal_boven
+    entity_id: switch.lampen_hal_boven
   - platform: switch
     name: Lamp Nienke
     entity_id: switch.lamp_kamer_nienke
@@ -996,7 +1015,7 @@ light:
     entity_id: switch.lampen_zolder
   - platform: switch
     name: Lampen speelkamer
-    entity_id: switch.sw_speelk_switch
+    entity_id: switch.lamp_speelkamer
   - platform: group
     name: Lampen eetkamertafel
     entities:
@@ -1012,7 +1031,7 @@ light:
     name: Lampen Keuken
     entities:
       - light.aanrecht
-      - light.group_bar
+      - light.bar
       - light.sonoff_spoelbak_keuken
       - light.sonoff_sfeerlicht_keuken
   - platform: group
@@ -1042,10 +1061,6 @@ light:
     entities:
       - light.hal
       - light.lamp_spiegel
-  - platform: group
-    name: Lampen Entree
-    entities:          
-      - light.entree
   - platform: group
     name: Lampen Toilet Beneden
     entities:          
