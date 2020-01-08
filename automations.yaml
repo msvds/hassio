@@ -5719,3 +5719,4 @@
         ] | random }}
         {%- endmacro -%}
         {{greeting_sentence(person)}}
+      call_no_announcement: 1
