@@ -16,3 +16,7 @@
 ip_bans.yaml
 secrets.yaml
 known_devices.yaml
+zones.yaml
+google_calendars.yaml
+handleiding.txt
+filed_automations.txt
