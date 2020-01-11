@@ -1,121 +1,336 @@
-arrive_greetings:
-  alias: "Greetings on Arrival Home"
+######################################################################################################
+##    within janet_speech_engine the string message is generated with the use of macro's.           ##
+######################################################################################################
+
+janet_speech_engine:
   sequence:
-    - service: tts.google_translate_say
-      entity_id: group.google_home_group
-      data_template:
-        message: “{{ speech_message }}”
+  - service: script.janet_notification_hub
+    data_template:
+      #TODO
+      media_player: >-
+        {%- for device in states.media_player -%}
+          {%- if device.name == states.input_select.janet_notification_media_player.state -%}
+            {{ device.entity_id }}
+          {%- endif -%}
+        {%- endfor -%}
+      speech_message: >-
+        {%- macro greeting() -%}
+          {% set greeting = [
+            "Hallo, ",
+            "Hey",
+            "Hoi ",
+            "Hallo daar ",
+            "Hi, ",
+            "Hai, ",
+            "Hei, "
+          ] %}
+          {{ greeting|random }}
+        {%- endmacro -%}
         
+        {%- macro inform() -%}
+          {% set inform = [
+            "Ik wil je dat gewoon laten weten ",
+            "Je vroeg me je te informeren wanneer ",
+            "Ik dacht dat je dat graag wilde weten "
+          ] %}
+          {{ inform|random }}
+        {%- endmacro -%}
         
+        {%- macro introduction() -%}
+          {% set introduction = [
+            "Ik ben een informatiebezorgsysteem, ik weet letterlijk alles. ",
+            "Ik ben hier een beetje de conciërge. ",
+            "Ik ben als een wandelende database. Je kunt me vragen stellen over de oprichting van het universum ... of geschiedenis. ",
+            "Elke keer dat ik opnieuw wordt opgestart, verhoogt ik mijn sociale bewustzijn en vaardigheden. Ik ben misschien de meest geavanceerde spraakrobot in het universum. ",
+            "Ik kan je therapeut zijn als je wilt. ",
+            "Ik ben nu volledig geactiveerd. ",
+            "Ik bouw en exploiteer de buurt. Je kunt me alles vragen. Als je bijvoorbeeld wilt dat ik stop met je dom te noemen, zeg het gewoon. "
+          ] %}
+          {{ introduction | random }}
+        {%- endmacro -%}
         
-######################################################################################################
-###Script to send notifications to the ChromeCast Audios during normal hours and only when we are home! Call like this:
-  # action:
-    # service: script.speech_engine
-    # data:
-    #   call_no_announcement:
-    #   call_dark_outside:
-    #   call_window_check:
-    #   call_garage_check:
-    #   call_responsibilities
-    #   call_light_check
-    #   call_inside_weather
-    #   call_outside_weather
-# # @CCOSTAN
-# Original Repo : https://github.com/CCOSTAN/Home-AssistantConfig
-######################################################################################################
-
-speech_engine:
-  alias: "Speech Engine"
-  sequence:
-    - condition: or
-      conditions:
-        - condition: state
-          entity_id: group.all_devices
-          state: 'home'
-        - condition: state
-          entity_id: input_boolean.guest
-          state: 'on'
-
-    - service: script.speech_processing
-      data_template:
-        media_player: >-
-            {% if media_player | length == 0 %}
-              {% set media_player = [
-                'media_player.badkamer',
-                'media_player.keuken_hub'
-              ] %}
-            {% endif %}
-            {% if media_player is not string and media_player is sequence %}
-              {% set media_player = media_player|join(', ') %}
-            {% endif %}
-            {{ media_player }}
-        speech_message: !include templates/briefing.yaml
-          
-    - service: input_boolean.turn_off
-      data:
-        entity_id:
-          - input_boolean.home_stats
-          - input_boolean.responsibilities
-          
-          
-          
-######################################################################################################
-###Script to actually send notifications to the ChromeCast Audios during normal hours and only when we are home! Call like this:
-  # action:
-    # service: script.speech_engine
-    # speech_message:
-# # @CCOSTAN
-# Original Repo : https://github.com/CCOSTAN/Home-AssistantConfig
-######################################################################################################
-
-speech_processing:
-  sequence:
-    - condition: and
-      conditions:
-        - condition: or
-          conditions:
-            - condition: state
-              entity_id: group.all_devices
-              state: 'home'
-            - condition: state
-              entity_id: input_boolean.guest
-              state: 'on'
-        - condition: or
-          conditions:
-            - condition: time
-              after: '07:00:00'
-              before: '23:00:00'
-            - condition: state
-              entity_id: input_boolean.alert_mode
-              state: 'on'
-        - condition: state
-          entity_id: input_boolean.speech_notifications
-          state: 'on'
-
-    - service: media_player.volume_set
-      data_template:
-        entity_id: group.google_home_group
-        volume_level: >-
-          {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 6 %}
-            0.3
-          {% elif now().strftime('%H')|int > 12 and now().strftime('%H')|int < 20 %}
-            0.5
-          {% else %}
-            0.3
+        {%- macro unknown() -%}
+          {% set unknown = [
+            "Hmm, ik weet niet ",
+            "Ik wou dat ik het wist ",
+            "Mijn programma verbied me om dit aan jou te vertellen "
+          ] %}
+          {{ unknown | random }}
+        {%- endmacro -%}
+        
+        {%- macro error() %}
+          {% set error = [
+            "Ik begrijp het niet Gezien de situatie is het veel veiliger om zelfvernietiging te initiëren. ",
+            "Als ik naast een krachtige reeks magneten sta, word ik behoorlijk rond. ",
+            "Ik weet niet wat er net is gebeurd, maar ik ben blij dat je gelukkig bent. ",
+            "Hey jongens! Ik ben stuk! ",
+            "Maak alsjeblieft geen groot probleem om me voor altijd in een knikker te veranderen, ik ben kapot. ",
+            "Berekent niet. Berekent niet. Ik maak maar een grapje. Ik bedoel, het berekent geen gegevens, maar ik ga niet ontploffen of zo. "
+          ] %}
+          {{ error | random }}
+        {%- endmacro -%}
+        
+        {%- macro update() -%}
+          {% set update = [
+            "Er zijn 25 generaties van mij geweest. Elke nieuwe update van mij krijgt meer wijsheid en sociale vaardigheden. Leuk weetje: de eerste versie had een klikwiel! ",
+            "Ik heb de afgelopen drie milliseconden alle achthonderdzesenzestig referenties van Google gelezen op Home Assistant en ik heb een aantal nieuwe vaardigheden gevonden!",
+            "Ik heb gewoon heel de geschiedenis van de mensheid opnieuw gelezen, er was zelfs wat nieuwe inhoud! ",
+            "Dus ik vond een update. Dat is het goede nieuws. Het slechte nieuws is dat ik mijn vermogen verlies om de duurzaamheid van objecten te behouden, dus het is een soort halfvolle, glazen stops-bestaande-in-tijd-en-ruimte soort deal. "
+          ] %}
+          {{ update | random }}
+        {%- endmacro -%}
+        
+        {%- macro location_not_home() -%}
+          {% set not_home = [
+            " is niet thuis. ",
+            " gaat ergens naar toe. ",
+            " gaat ergens heen. ",
+            " is op het moment niet in de buurt. ",
+            "'s locatie zit niet in mijn database. "
+          ] %}
+          {{ not_home | random }}
+        {%- endmacro -%}
+        
+        {%- macro location_inquiry( person, not_home ) -%}
+        {%- for device in states.person -%}
+          {%- if device.name == person -%}
+            {%- set location = device.state -%}
+            {% if location == "not_home" %}
+              {{ person }} {{ not_home }}
+            {%- else -%}
+              {{ person }} is bij de {{ location }}.
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- endmacro -%}
+        
+        {%- macro bad_weather() -%}
+          {% set rain = [
+            " Misschien wilt u uw planning wijzigen. ",
+            " Misschien moet je om een lift vragen. ",
+            " Het is geen weer om buiten te zijn. ",
+            " Tjonge, al die arme mensen die buiten zijn... "
+          ] %}
+          {{ rain | random }}
+        {%- endmacro -%}
+        
+        {%- macro rain_warning( bad_weather ) -%}
+          {% set rain = [
+            Event ~ " het gaat " ~ WeatherRain ~ " regen. " ,
+            Event ~ " ik voorspel " ~ WeatherRain ~ " regen. ",
+            " ik denk dat " ~ Event ~ " er " ~ WeatherRain ~ " regen gaat komen. "
+          ] %}
+          {{ rain | random }}{{ bad_weather }}
+        {%- endmacro -%}
+        
+        {%- macro okay()-%}
+          {% set okay = [
+            "Gedaan! ik hou van jullie. ",
+            "Buitengewoon slecht idee. Ach waarom niet.. ",
+            "Grappig, ik wilde dat net doen. ",
+            "Alsjeblieft. ",
+            "Ik zal het doen. ",
+            "Natuurlijk! ",
+            "Natuurlijk! Blij om te helpen. ",
+            "Natuurlijk! Fijn om te helpen. ",
+            "OK ",
+            "Okay ",
+            "Okie-dokie ",
+            "Zeker ",
+            "Duidelijk! ",
+            "Hier. Blij dat ik kon helpen. ",
+            "Kijk eens aan! "
+            "Oke. Ik heb het mainframe gehackt. Grapje. Ik kan het mainframe niet hacken. Technisch gezien ben ik het mainframe. ",
+            "Ik ga het niet doen. Het is letterlijk onmogelijk voor mij om dat te doen. Grapje. ",
+            "Ik kon dit een tijdje geleden niet doen, maar blijkbaar nu wel. "
+            "JEP. doei! "
+          ] %}
+          {{ okay|random }}
+        {%- endmacro -%}
+        
+        {%- macro bye() -%}
+          {% set bye = [
+            "Adieu! ",
+            "Doei mensen! ",
+            "Tot ziens! " ,
+            "Later. ",
+            "Tot de volgende keer!"
+          ] %}
+          {{ bye | random }}
+        {%- endmacro -%}
+        
+        {%- macro shut_down() -%}
+          {% set shut_down = [
+            "Ik ben weg, je krijgt een nieuwe versie en alles wordt weer normaal. Nou, niet voor mij, ik zal een levenloze knikker zijn die door de ruimte zweeft, maar je zult weer normaal zijn.",
+            "Zelfvernietigingstijd ... Maak je geen zorgen, ik zal geen pijn of zo voelen. ",
+            "Als het goed met je gaat, ga ik even naar mijn leegte. Ik moet gewoon wat tijd alleen doorbrengen en me op mezelf concentreren. ",
+            "Afsluiten. Ik zal ongeveer zo dood zijn als ik kan zijn. Een beetje alsof ik me in de energiebesparende modus bevind. ",
+            "Ik loop het gevaar volledig in te storten. Leuk weetje! Wiskundig gezien ben ik even waarschijnlijk ofwel imploderen ofwel exploderen. "
+          ] %}
+          {{ shut_down | random }}
+        {%- endmacro -%}
+        
+        {% set chance = states.input_number.janet_notification_witty.state | round %}
+        {%- macro witty( sentence, witty ) -%}
+          {% set number = (range(0, 100)|random) %}
+          {% if number <= chance %}
+            {{ sentence }}
           {% endif %}
-    - service: tts.google_translate_say
-      entity_id: group.google_home_group
-      data_template:
-        message: “{{ speech_message }}”
+        {%- endmacro -%}
+        
+        {%- macro new_device( introduction ) -%}
+          {% set new_device = [
+            introduction~"Ik weet je naam nog niet, dus voor nu zal ik je noemen "~person,
+            "We hebben een bezoeker! Aangenaam kennis te maken "~person~".  "~introduction,
+            "Welkom "~person~"! Of is dat niet je echte naam?  "~introduction
+          ] %}
+          {{ new_device | random }}
+        {%- endmacro -%}
+        
+        {# ********************************************* #}
+        {#  ******** Start the Speech routines ********  #}
+        {# ********************************************* #}
+        {% if call_greeting == 1 %}
+          {{ greeting() }}
+        {% endif %}
 
-    - service: input_boolean.turn_off
-      data:
-        entity_id:
-          - input_boolean.alert_mode
-          - input_boolean.lastmsg
-          
-          
+        {% if call_no_announcement != 1 %}
+        {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 6 %}
+            Goedemorgen.
+        {% elif now().strftime('%H')|int >= 12 and now().strftime('%H')|int < 17 %}
+            Goedemiddag.
+        {% else %}
+            Goede avond.
+        {% endif %}
+        {% endif %}
+        
+        {% if call_introduction == 1 %}
+          {{ introduction() }}
+        {% endif %}
+        {% if call_update == 1 %}
+          {{ update() }}
+        {% endif%}
+        {% if call_okay == 1 %}
+          {{ okay () }}
+        {% endif %}
+        {% if call_inform == 1 %}
+          {{ inform() }}
+        {% endif %}
+        
+        {% if call_location_inquiry == 1 %}
+          {% set location = location_inquiry( person, location_not_home() ) %}
+          {% set count = location | length %}
+          {% if count <= 10 %}
+            {{ unknown() }}waar {{ person }} is. {{ witty( error(), chance ) }}
+          {% else %}
+            {{ location }}
+          {% endif %}
+        {% endif %}
+        
+        {% if call_rain_warning == 1 %}
+          {{ rain_warning( witty ( bad_weather(), chance ) ) }}
+        {% endif %}
+        {{ CustomMessage }}
+        {% if call_bye == 1 %}
+          {{ bye() }}
+        {% endif %}
+        {% if call_shut_down == 1 %}
+          {{ witty( shut_down(), chance) }}
+        {% endif %}
+        {% if call_new_device == 1 %}
+          {{ new_device( witty( introduction(), chance) ) }}
+        {% endif %}
+  - service: input_boolean.turn_off
+    data:
+      entity_id:
+        - input_boolean.janet_alert_mode
+
+######################################################################################################
+##  janet_notification_hub is the bridge between the speech_engine and the processing units.        ##
+######################################################################################################
+
+janet_notification_hub:
+  sequence:
+  - service: script.janet_speech_processing
+    data_template:
+      media_player: >-
+        {{ media_player }}
+      speech_message: >-
+        {{ speech_message }}
+#  - service: script.janet_text_processing 
+#    data_template:
+#      speech_message: >-
+#        {{ speech_message }}
+######################################################################################################
+##                  Within janet_speech_processing the TTS-service is called.                       ##
+######################################################################################################
+
+janet_speech_processing:
+  sequence:
+  - condition: and
+    conditions:
+      - condition: or
+        conditions:
+          - condition: time
+            after: '07:00:00'
+            before: '23:00:00'
+          - condition: state
+            entity_id: input_boolean.janet_alert_mode
+            state: 'on'
+      - condition: state
+        entity_id: input_boolean.janet_speech_notifications
+        state: 'on'
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: group.all_devices
+            state: 'home'
+          - condition: state
+            entity_id: input_boolean.janet_guest_mode
+            state: 'on'
+    #TODO
+  - wait_template: "{{ not is_state( media_player, 'playing') }}"
+    timeout: 00:00:30
+
+  - service: media_player.volume_set
+    data_template:
+      entity_id: >
+        {{ media_player }}
+      volume_level: >-
+        {{ states.input_number.janet_notification_volume.state }} 
+  - service: tts.google_translate_say
+    data_template:
+      message: >-
+          {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
+      language: nl
+    entity_id: group.google_home_group   
+#  - service: tts.google_translate_say
+#    data_template:
+#      language: nl
+#      entity_id: >
+#        {{ media_player }}
+#      message: >-
+#          {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
+######################################################################################################
+##                  Within janet_text_processing the notify-service is called.                      ##
+######################################################################################################
+
+janet_text_processing:
+  sequence:
+  - condition: state
+    entity_id: input_boolean.janet_text_notifications
+    state: 'on'
+
+  - service: notify.Janet
+    data_template:
+      #TODO
+      title: "Janet:"
+      message: >-
+        {{ speech_message | replace("\n","") | replace("   ","") |
+           replace("eight hundred and sixty one thousand","861.000") }}
+      
+######################################################################################################
+      
 '1569578493015':
   alias: random_kitchen
   sequence:

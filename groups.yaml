@@ -1,4 +1,40 @@
 # Example groups.yaml entry
+janet_settings:
+    name: Settings
+    view: yes
+    icon: mdi:tune
+    entities:
+      - group.janet_notification_modes
+      - group.janet_notification_notifications
+      - group.janet_notification_settings
+      - group.janet_notification_skills
+
+janet_notification_modes:
+    name: Modes
+    entities:
+      - input_boolean.janet_guest_mode
+      - input_boolean.janet_alert_mode
+
+janet_notification_notifications:
+    name: Notifications
+    entities:
+      - input_boolean.janet_speech_notifications
+      - input_boolean.janet_text_notifications
+
+janet_notification_settings:
+    name: Settings
+    entities:
+      - input_select.janet_notification_media_player
+      - input_number.janet_notification_volume
+      - input_number.janet_notification_witty
+janet_notification_skills:
+    name: Skills
+    entities:
+      - automation.janet_new_device_connected
+      - automation.janet_update_available
+      - automation.janet_start_up
+      - automation.janet_shut_down
+
 Smart meter:
   - sensor.toon_gas_used_last_hour
   - sensor.toon_gas_used_cnt
