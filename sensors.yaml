@@ -592,6 +592,7 @@
 
   - platform: darksky 
     api_key: !secret darksky_API_key
+    language: nl
     forecast:
       - 0
     hourly_forecast:
@@ -608,6 +609,7 @@
       - wind_speed
       - wind_gust
       - cloud_cover
+      - uv_index
     scan_interval:
       minutes: 20
 

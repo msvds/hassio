@@ -21,8 +21,7 @@ janet_speech_engine:
             "Hoi ",
             "Hallo daar ",
             "Hi, ",
-            "Hai, ",
-            "Hei, "
+            "Hai, "
           ] %}
           {{ greeting|random }}
         {%- endmacro -%}
@@ -43,8 +42,7 @@ janet_speech_engine:
             "Ik ben als een wandelende database. Je kunt me vragen stellen over de oprichting van het universum ... of geschiedenis. ",
             "Elke keer dat ik opnieuw wordt opgestart, verhoogt ik mijn sociale bewustzijn en vaardigheden. Ik ben misschien de meest geavanceerde spraakrobot in het universum. ",
             "Ik kan je therapeut zijn als je wilt. ",
-            "Ik ben nu volledig geactiveerd. ",
-            "Ik bouw en exploiteer de buurt. Je kunt me alles vragen. Als je bijvoorbeeld wilt dat ik stop met je dom te noemen, zeg het gewoon. "
+            "Ik ben nu volledig geactiveerd. "
           ] %}
           {{ introduction | random }}
         {%- endmacro -%}
@@ -72,10 +70,10 @@ janet_speech_engine:
         
         {%- macro update() -%}
           {% set update = [
-            "Er zijn 25 generaties van mij geweest. Elke nieuwe update van mij krijgt meer wijsheid en sociale vaardigheden. Leuk weetje: de eerste versie had een klikwiel! ",
+            "Er zijn al vele generaties van mij geweest. Elke nieuwe update van mij krijgt meer wijsheid en sociale vaardigheden. Leuk weetje: de eerste versie had een klikwiel! ",
             "Ik heb de afgelopen drie milliseconden alle achthonderdzesenzestig referenties van Google gelezen op Home Assistant en ik heb een aantal nieuwe vaardigheden gevonden!",
-            "Ik heb gewoon heel de geschiedenis van de mensheid opnieuw gelezen, er was zelfs wat nieuwe inhoud! ",
-            "Dus ik vond een update. Dat is het goede nieuws. Het slechte nieuws is dat ik mijn vermogen verlies om de duurzaamheid van objecten te behouden, dus het is een soort halfvolle, glazen stops-bestaande-in-tijd-en-ruimte soort deal. "
+            "Ik heb net gewoon even heel de geschiedenis van de mensheid opnieuw gelezen, er was zelfs wat nieuwe inhoud! ",
+            "Ik keek net even en vond een update. Dat is toch goed nieuws!"
           ] %}
           {{ update | random }}
         {%- endmacro -%}
@@ -150,10 +148,15 @@ janet_speech_engine:
         
         {%- macro bye() -%}
           {% set bye = [
-            "Adieu! ",
+            "Daag! ",
             "Doei mensen! ",
-            "Tot ziens! " ,
+            "Dag",
+            "Doei",
+            "Dikke doei",
+            "Tot ziens!",
             "Later. ",
+            "Laters! ",
+            "Ciao! ",
             "Tot de volgende keer!"
           ] %}
           {{ bye | random }}
@@ -187,21 +190,435 @@ janet_speech_engine:
           {{ new_device | random }}
         {%- endmacro -%}
         
+        {%- macro dark_outside() -%}
+          {% set dark_outside = [
+            "Het is behoorlijk donker buiten. Ik zal nu de buitenverlichting inschakelen.",
+            "Het is net na zonsondergang. Tijd om de buitenverlichting aan te doen. Ik ben er mee bezig.",
+            "Ik zal de buitenlichten inschakelen. Buiten wordt het donker.",
+            "Tijd om de lampen aan te zetten. Ik zal het regelen.",
+            "De zon is officieel ondergegaan. Ik zal nu de buitenverlichting inschakelen.",
+            "Ik schakel nu over naar de nachtmodus.",
+            "Misschien heb je de laatste tijd niet naar buiten hebt gekeken, maar het daglicht is verdwenen.",
+            "De buitenwereld is overgeschakeld naar de donkere modus."
+          ] %}
+          {{ dark_outside | random }}
+        {%- endmacro -%}
+  
+        {%- macro dark_inside() -%}
+          {% set dark_inside = [
+            "Het huis wordt donker, laat me wat lichten voor je aandoen!",
+            "Het lijkt erop dat het hier donker wordt, laten we dat eens veranderen! ",
+            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen! ",
+            "Overschakelen naar nachtmodus! ",
+            "Het is behoorlijk donker buiten. Ik ga gewoon wat lichten aandoen! "
+          ] %}
+          {{ dark_inside | random }}
+        {%- endmacro -%}
+  
+        {%- macro guest_mode_on() -%}
+          {% set guest_mode_on = [
+            "Het lijkt erop dat we een gast in huis hebben! ",
+            "We hebben een gast. Ik zal de gastmodus inschakelen! ",
+            "Ik heb de gastmodus ingeschakeld voor het bezoek aan ons huis! ",
+            "Overschakelen naar gastmodus! ",
+            "Het komt niet zo heel vaak voor dat gasten blijven! Dus laat me het huis voorbereiden op uw bezoek. "
+          ] %}
+          {{ guest_mode_on | random }}
+        {%- endmacro -%}
+        
+        {%- macro guest_mode_off() -%}
+          {% set guest_mode_off = [
+            "Het lijkt erop dat onze gast is vertrokken, ik schakel de gastmodus uit! ",
+            "Laat me de gastmodus uitschakelen, omdat er geen gasten meer zijn. ",
+            "Ik heb de gastmodus uitgeschakeld en de normale werking hervat! ",
+            "Gastmodus wordt uitgeschakeld! ",
+            "Omdat er geen gasten meer zijn, kan ik de gastmodus uitschakelen. "
+          ] %}
+          {{ guest_mode_off | random }}
+        {%- endmacro -%}
+        
+        {%- macro responsibilities() -%}
+          {% if states.sensor.trash_today.state != 'Geen' %}
+            Vandaag is het tijd om de container voor 
+            {{states.sensor.trash_firstwastetype.state}} buiten te zetten.                
+            De volgende container moet over {{states.sensor.trash_next.state}} dagen buiten worden gezet.
+          {% endif %}
+          {% if now().strftime('%j')|int % 2 != 0 %}
+            {% if now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7 %}
+              Vandaag is het de beurt aan Nienke om de tafel te dekken en voor Lars om te tafel af te ruimen.
+            {% elif now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19 %}
+              Vandaag is het de beurt aan Nienke om de tafel te dekken en voor Lars om te tafel af te ruimen.
+            {% endif %}
+          {% else %}
+            {% if now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7 %}
+              Vandaag is het de beurt aan Lars om de tafel te dekken en voor Nienke om te tafel af te ruimen.
+            {% elif now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19 %}
+              Vandaag is het de beurt aan Lars om de tafel te dekken en voor Nienke om te tafel af te ruimen.
+            {% endif %}
+          {% endif %}
+        {%- endmacro -%}
+        
+        {%- macro inside_weather() -%}
+          Binnen is het {{ states.sensor.toon_room_temp.state | round(0) }} graden en de vochtigheid is {{ states.sensor.hum_keuken.state | round(0) }} procent.
+        {%- endmacro -%}
+        
+        {%- macro outside_weather() -%}
+          De voorspelling voor vandaag is {{ states('sensor.br_symbol') }} en voor morgen {{ states('sensor.br_symbol_1d') }} .
+          {% if states.sensor.br_rain_1d.state | int > 20 %}
+            Morgen wordt er erg veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+          {% elif states.sensor.br_rain_1d.state | int > 10 %}
+            Morgen wordt er veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+          {% elif states.sensor.br_rain_1d.state | int > 5 %}
+            Morgen wordt er best veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+          {% elif states.sensor.br_rain_1d.state | int > 2 %}
+            Morgen wordt er een beetje regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+          {% elif states.sensor.br_rain_1d.state | int > 0.5 %}
+            Morgen wordt er een weinig regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+          {% elif states.sensor.br_rain_1d.state | int > 0.01 %}
+            Morgen wordt er nauwelijks regen verwacht.
+          {% else %}
+            Morgen blijft het gelukkig droog.
+          {% endif %}
+          {% if states.sensor.br_rainchance_1d.state | int > 90 %}
+            Het gaat morgen bijna zeker regenen, want de kans is {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+          {% elif states.sensor.br_rainchance_1d.state | int > 70 %}
+            De kans op regen is hoog is met {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+          {% elif states.sensor.br_rainchance_1d.state | int > 50 %}
+            Er is morgen en redelijke kans op regen, omdat de kans {{ states.sensor.br_rainchance_1d.state | round(0) }} procent is.
+          {% elif states.sensor.br_rainchance_1d.state | int > 20 %}
+            Morgen is de kans niet zo hoog op regen, want de kans is maar {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+          {% else %}
+            Morgen blijft het waarschijnlijk droog, de kans op regen is klein met {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+          {% endif %}
+        {%- endmacro -%}
+        
+        {%- macro light_check() -%}
+          {% if states.group.all_lights.state != 'off' -%}
+            Er staan
+          {% for state in states.light if state.state == 'on' -%}
+            {%- if loop.last -%}
+              {{ loop.index }}
+            {%- endif -%}
+          {%- endfor %}
+          lampen aan op dit moment.
+          {%- endif -%}
+        {%- endmacro -%}
+        
+        {%- macro door_check() -%}
+          {% if is_state("binary_sensor.bijkeukendeur", "on") %}
+          De bijkeukendeur staat open!
+          {% elif is_state("binary_sensor.eetkamerdeur", "on") %}
+          De eetkamerdeur staat open!
+          {% elif is_state("binary_sensor.deur_balkon_kamer_nienke", "on") %}
+          De deur naar het balkon op Nienkes kamer staat open!
+          {% elif is_state("binary_sensor.deur_slaapkamer_balkon", "on") %}
+          De deur naar het balkon op de ouder slaapkamer staat open!
+          {% elif is_state("binary_sensor.garagedeur_tuinkant", "on") %}
+          De garagedeur aan de kant van de tuin staat open!
+          {% elif is_state("binary_sensor.voordeur", "on") %}
+          De voordeur staat open!
+          {% elif is_state("binary_sensor.woonkamerdeur", "on") %}
+          De woonkamerdeur staat open!
+          {% endif %}
+        {%- endmacro -%}
+        
+        {%- macro window_check() -%}
+          {% if is_state("binary_sensor.dakraam_badkamer", "on") %}
+          Het dakraam in de badkamer staat open!
+          {% elif is_state("binary_sensor.dakraam_chillkamer", "on") %}
+          Het dakraam in de chillkamer staat open!
+          {% elif is_state("binary_sensor.dakraam_slaapkamer", "on") %}
+          Het dakraam in de slaapkame staat open!
+          {% elif is_state("binary_sensor.dakraam_zolder", "on") %}
+          Het dakraam op zolder staat open!
+          {% endif %}
+        {%- endmacro -%}
+        
+        {%- macro garage_check() -%}
+          {% if is_state("binary_sensor.garagedeur", "on") %}
+          De grote garagedeur staat open!
+          {% endif %}
+        {%- endmacro -%}
+        
+        {%- macro iss() -%}
+          {% if is_state('binary_sensor.iss', 'on') -%}
+            Hier is iets interessants. Het internationale ruimtestation ISS bevindt zich nu boven ons. Er zijn {{ states.binary_sensor.iss.attributes['number_of_people_in_space'] }} mensen in de ruimte op dit moment.
+            {{ outside_weather() }}
+          {% endif -%}
+        {%- endmacro -%}
+        
+        {%- macro moon() -%}
+          {%- if states.sensor.moon.state == 'Full moon' -%}
+            {{ [
+                 "Bekijk de volle maan vanavond!",
+                 "Hé kijk, er is een volle maan. ",
+                 "De maan is enorm! En vol. ",
+                 "Als je vanavond de volle maan wilt zien, dit is je kans."
+                 ] | random }}
+          {%- endif -%}
+        {%- endmacro -%}
+        
+        {%- macro lampen_aan(kamer) -%}
+          {% set lampen_aan = [
+            "Blijkbaar vind iemand dat het donker wordt, dus laat me wat lichten voor je aandoen in de " ~ kamer ~ "!",
+            "Het lijkt erop dat het nodig is de " ~ kamer ~ " lampen aan te doen, dus laten we dat eens doen! ",
+            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen in de " ~ kamer ~ "! ",
+            "Ik ga gewoon wat lichten aandoen in de " ~ kamer ~ "! "
+          ] %}
+          {{ lampen_aan | random }}
+        {%- endmacro -%}
+        
+        {%- macro lampen_uit(kamer) -%}
+          {% set lampen_uit = [
+            "Tja de lampen kunnen denk ik wel uit, dus laat me de lichten voor je uitdoen in de " ~ kamer ~ "!",
+            "Het lijkt erop dat de lampen in de " ~ kamer ~ " wel uit kunnen, dus laten we dat eens doen! ",
+            "De lampen hoeven nu echt niet meer aan te staan. Laten we ze uitdoen in de " ~ kamer ~ "! ",
+            "Ik ga gewoon de lichten uitdoen in de " ~ kamer ~ "! "
+          ] %}
+          {{ lampen_uit | random }}
+        {%- endmacro -%}
+        
+        {%- macro langskomen(kind) -%}
+          {% set langskomen = [
+            kind ~ " wil graag dat iemand even langs komt.",
+            "Ik geloof dat " ~ kind ~ " wil dat iemand even langs gaat.",
+            "Zou iemand even langs kunnen gaan bij " ~ kind ~ "? ",
+            "Ik denk dat " ~ kind ~ " het leuk zou vinden als er iemand even langs ging."
+          ] %}
+          {{ langskomen | random }}
+        {%- endmacro -%}
+        
+        {%- macro leeslamp_weer_aan(kind) -%}
+          {% set leeslamp_weer_aan = [
+            kind ~ " zet de leeslamp weer aan",
+            "Ik merk dat " ~ kind ~ " de leeslamp weer aan heeft gezet",
+            "Ik zou even gaan checken bij " ~ kind ~ ", want de leeslamp staat weer aan",
+            "Ik denk dat " ~ kind ~ " de leeslamp weer aan heeft gezet"
+          ] %}
+          {{ leeslamp_weer_aan | random }}
+        {%- endmacro -%}
+        
+        {%- macro alarm_uit() -%}
+          {% set alarm_uit = [
+            "Ik heb het alarm voor je uitgezet",
+            "Laat me het alarm uitschakelen, omdat je weer thuis bent. ",
+            "Ik heb de alarmmodus uitgeschakeld en de normale werking hervat! ",
+            "Alarmmodus wordt uitgeschakeld! ",
+            "Omdat je niet meer weg bent, kan ik de alarmmodus uitschakelen. "
+          ] %}
+          {{ alarm_uit | random }}
+        {%- endmacro -%}
+                
+        {% macro inspirational_quote() %}
+          {% set inspirational_quote = [
+          "En nog een ding, het leven gaat over het maken van impact, zorg het een positieve is.",
+          "En nog een ding, wat de geest van de mens ook kan bedenken en geloven, kan het bereiken.",
+          "En nog een ding, streef er niet naar om een succes te zijn, maar om van waarde te zijn.",
+          "En nog een ding, ik schrijf mijn algehele succes toe aan nooit een excuus te geven of te nemen.",
+          "En nog een ding, het definiëren van het doel is het startpunt van alle prestaties.",
+          "En nog een ding, het leven gaat niet over krijgen en hebben, het gaat over geven en zijn.",
+          "En nog een ding, we worden wat we denken.",
+          "En nog een ding, het leven is tien procent wat je overkomt en negentig procent van hoe je erop reageert.",
+          "En nog een ding, de geest is alles. Wat je denkt, zul je worden.",
+          "En nog een ding, de beste tijd om een boom te planten was twintig jaar geleden. De tweede beste tijd is nu.",
+          "En nog een ding, je tijd is beperkt, dus verspil het niet door iemand anders te leven.",
+          "En nog een ding, winnen is niet alles, maar willen winnen is alles.",
+          "En nog een ding, ik ben geen product van mijn omstandigheden. Ik ben een product van mijn beslissingen.",
+          "En nog een ding, of jij bepaalt de dag, of de dag bepaalt jou.",
+          "En nog een ding, of je denkt dat je het kunt of je denkt dat je het niet kunt, je zult gelijk hebben.",
+          "En nog een ding, de twee belangrijkste dagen in je leven zijn de dag dat je geboren wordt en de dag dat je erachter komt waarom.",
+          "En nog een ding, wat je ook kunt doen, of dromen, je kunt ermee beginnen. Moed heeft genialiteit, kracht en magie in zich.",
+          "En nog een ding, de beste wraak is enorm succes.",
+          "En nog een ding, het universum kan je het goede niet in handen geven, tenzij je het slechte loslaat.",
+          "En nog een ding, als je een stem in jezelf hoort zeggen dat je niet kunt schilderen, dan zal verf in alle opzichten tot zwijgen worden gebracht.",
+          "En nog een ding, er is maar één manier om kritiek te vermijden: niets doen, niets zeggen en niets zijn.",
+          "En nog een ding, vraag en het zal u gegeven worden; zoek en u zult vinden; klop en de deur zal voor u geopend worden.",
+          "En nog een ding, de enige persoon die je voorbestemd bent te worden, is de persoon die je besluit te zijn.",
+          "En nog een ding, ga vol vertrouwen in de richting van je dromen. Leef het leven dat je je hebt voorgesteld.",
+          "En nog een ding, bepaalde dingen springen in het oog, maar achtervolg alleen die dingen die het hart veroveren.",
+          "En nog een ding, geloof dat je kunt en je bent halverwege.",
+          "En nog een ding, alles wat je ooit hebt gewild is aan de andere kant van angst.",
+          "En nog een ding, begin waar je bent. Gebruik wat je hebt. Doe wat je kunt.",
+          "En nog een ding, val zeven keer en sta acht op.",
+          "En nog een ding, alles heeft schoonheid, maar niet iedereen kan het zien.",
+          "En nog een ding, het leven wordt niet gemeten aan de hand van het aantal ademhalingen dat we doen, maar aan de momenten die onze adem wegnemen.",
+          "En nog een ding, geluk is niet iets kant en klaar. Het komt van je eigen acties.",
+          "En nog een ding, als je een stoel op een raket wordt aangeboden, vraag dan niet welke stoel! Stap gewoon op.",
+          "En nog een ding, je kunt niet vallen als je niet klimt. Maar het is geen vreugde om je hele leven op de grond te leven.",
+          "En nog een ding, uitdagingen maken het leven interessant en overwinnen is wat het leven zinvol maakt.",
+          "En nog een ding, als je jezelf wilt optillen, til dan iemand anders op.",
+          "En nog een ding, wees aardig voor anderen en leuke dingen zullen je overkomen."
+          ] %}
+          {{inspirational_quote|random}}
+        {% endmacro %}
+        
+        {%- macro uv() -%}
+          {% if states.sensor.dark_sky_uv_index.state|int >= 6 and states.sensor.dark_sky_uv_index.state|int <= 7.9 %}
+              De UV index is vandaag {{ states.sensor.dark_sky_uv_index.state }}.  Je zou zonnebrandcreme moeten smeren als je naar buiten gaat.
+          {% elif states.sensor.dark_sky_uv_index.state|int >= 8 and states.sensor.dark_sky_uv_index.state|int <=10.9 %}
+              De UV index is vandaag {{ states.sensor.dark_sky_uv_index.state }}.  Dit is erg hoog. Je moet zeker zonnebrandcreme smeren.
+          {% elif states.sensor.dark_sky_uv_index.state|int >= 11 %}
+              De UV index is vandaag {{ states.sensor.dark_sky_uv_index.state }}.  Dit is extreem hoog. Je moet zeker zonnebrandcreme smeren en uit de zon blijven
+          {% endif %}
+        {%- endmacro -%}
+        
+        {% macro days_until(jarige) %}
+          {% if jarige == "Suzanne" %}
+            En trouwens, er zijn nog {{ states.sensor.dagen_tot_verjaardag_suzanne.state }} dagen totdat {{ jarige }} jarig is.
+          {% elif jarige == "Martijn" %}
+            En trouwens, er zijn nog {{ states.sensor.dagen_tot_verjaardag_martijn.state }} dagen totdat {{ jarige }} jarig is.
+          {% elif jarige == "Lars" %}
+            En trouwens, er zijn nog {{ states.sensor.dagen_tot_verjaardag_lars.state }} dagen totdat {{ jarige }} jarig is.
+          {% elif jarige == "Nienke" %}
+            En trouwens, er zijn nog {{ states.sensor.dagen_tot_verjaardag_nienke.state }} dagen totdat {{ jarige }} jarig is.
+          {% endif %}  
+        {% endmacro %}
+        
+        {% macro days_until_holiday() %}
+          {% if states.sensor.dagen_tot_carnavalvakantie.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_carnavalvakantie.state }} dagen totdat de carnavalsvakantie begint.
+          {% elif states.sensor.dagen_tot_carnavalvakantie.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_carnavalvakantie.state }} dagen totdat de carnavalsvakantie begint.
+          {% elif states.sensor.dagen_tot_grote_vakantie.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_grote_vakantie.state }} dagen totdat de grote vakantie begint.
+          {% elif states.sensor.dagen_tot_grote_vakantie.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_grote_vakantie.state }} dagen totdat de grote vakantie begint.
+          {% elif states.sensor.dagen_tot_herfstvakantie.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_herfstvakantie.state }} dagen totdat de herfstvakantie begint.
+          {% elif states.sensor.dagen_tot_herfstvakantie.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_herfstvakantie.state }} dagen totdat de herfstvakantie begint.
+          {% elif states.sensor.dagen_tot_kerstvakantie.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_kerstvakantie.state }} dagen totdat de kerstvakantie begint.
+          {% elif states.sensor.dagen_tot_kerstvakantie.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_kerstvakantie.state }} dagen totdat de kerstvakantie begint.
+          {% elif states.sensor.dagen_tot_meivakantie.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_meivakantie.state }} dagen totdat de mei vakantie begint.
+          {% elif states.sensor.dagen_tot_meivakantie.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_meivakantie.state }} dagen totdat de mei vakantie begint.
+          {% elif states.sensor.dagen_tot_sinterklaas.state|int < 30 %}
+            En trouwens, het duurt nog {{ states.sensor.dagen_tot_sinterklaas.state }} dagen totdat het 5 december sinterklaas is.
+          {% elif states.sensor.dagen_tot_sinterklaas.state|int < 10 %}
+            En ter informatie, het is nog maar {{ states.sensor.dagen_tot_sinterklaas.state }} dagen totdat het 5 december sinterklaas is.
+          {% else %}
+              En ter informatie, het duurt nog even totdat het weer vakantie is.
+          {% endif %}  
+        {% endmacro %}
+        
+        {# Is today #}
+        {% macro is_today(event) -%}
+          {%- if event.attributes.start_time[:10]== (now()|string)[:10] -%}
+            true
+          {%- else -%}
+            false
+          {%- endif %}
+        {%- endmacro %}
+        
+        {# Holiday sentence #}
+        {% macro holiday_sentence() -%}
+          {%- if (states.calendar.holidays_in_united_states and
+                  states.calendar.holidays_in_united_states.attributes.start_time and
+                  is_today(states.calendar.holidays_in_united_states) == 'true') -%}
+            It is {{states.calendar.holidays_in_united_states.attributes.message}}.
+          {%- endif -%}
+        {%- endmacro %}
+        
+        {# Evening greeting sentence #}
+        {% macro evening_greeting_sentence(person) %}
+          {% set greetings = [
+            "Welkom thuis " ~ person ~ ".",
+            "Hoi " ~ person ~ ".",
+            person ~ "! Je bent thuis!",
+            "Welkom terug " ~ person ~ ".",
+            "Welkom terug " ~ person ~ ". Fijne dag.",
+            "Welkom thuis " ~ person + ". Ik heb je gemist."
+          ] %}
+          {{greetings|random}}
+        {% endmacro %}
+      
+        {# Evening closing sentence #}
+        {% macro evening_closing_sentence(person) -%}
+          {% set closings = [
+            "Hey, fijne avond!",
+            "Geniet van je avond.",
+            "Rustig aan vanavond.",
+            "Veel plezien vanavond!",
+          ] %}
+          {{closings|random}}
+        {% endmacro %}
+      
+        {# Morning greeting sentence #}
+        {% macro morning_greeting_sentence(person) -%}
+          {% set greetings = [
+            "Goedemorgen " ~ person ~ "!",
+            "Hoi " ~ person ~ ", goed om je weer te zien!",
+            "Ah, je bent wakker " ~ person ~ ".",
+            "Ik zie dat je eindelijk wakker bent. Het bed was vast lekker warm en comfortabel."
+          ] %}
+          {{greetings|random}}
+        {%- endmacro %}
+      
+        {# Morning closing sentence #}
+        {% macro morning_closing_sentence(person) -%}
+          {% set closings = [
+            "Have a great day!",
+            "Enjoy your day.",
+            "Have fun today!",
+            "Go get 'em!"
+          ] %}
+          {{closings|random}}
+        {%- endmacro %}
+        
+        {%- macro firealarm(kamer) -%}
+          {% set firealarm = [
+            "Alarm! Brandalarm in de " ~ kamer ~ "! Alarm!"
+          ] %}
+          {{ firealarm }}
+        {%- endmacro -%}
+        
+        {%- macro warning_rain(kamer) -%}
+          {% set warning_rain = [
+            "Het gaat waarschijnlijk regenen en het raam in de " ~ kamer ~ " is nog open",
+            "Er is regen op komst en het raam in de " ~ kamer ~ " staat nog open",
+            "Als het raam in de " ~ kamer ~ " open blijft staan, dan zal het straks naar binnen regenen"
+          ] %}
+          {{ warning_rain|random }}
+        {%- endmacro -%}
+        
+        
+        {%- macro work_arrive(person) -%}
+          {% set work_arrive = [
+            person~" heeft het werk veilig bereikt! ",
+            "Het lijkt er op dat "~person~" op het werk is aangkomen. ",
+            "Het heeft even geduurd, maar "~person~" is eindelijk op het werk aangkomen. "
+          ] %}
+          {{ work_arrive | random }}
+        {%- endmacro -%}
+        
+        {%- macro work_left(person) -%}
+          {% set work_left = [
+            "Het lijkt er op dat "~person~" net van het werk vertrokken is! ",
+            "Weer een dag geld verdient. "~person~" is net vertrokken van het werk . ",
+            person~" is eindelijk vertrokken van het werk. ",
+            "Even geen werk meer voor "~person~"! "~person~" is net vertrokken! "
+          ] %}
+          {{ work_left | random }}
+        {%- endmacro -%}
+        
+        
         {# ********************************************* #}
         {#  ******** Start the Speech routines ********  #}
         {# ********************************************* #}
         {% if call_greeting == 1 %}
           {{ greeting() }}
         {% endif %}
-
         {% if call_no_announcement != 1 %}
-        {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 6 %}
+          {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 6 %}
             Goedemorgen.
-        {% elif now().strftime('%H')|int >= 12 and now().strftime('%H')|int < 17 %}
+          {% elif now().strftime('%H')|int >= 12 and now().strftime('%H')|int < 17 %}
             Goedemiddag.
-        {% else %}
+          {% else %}
             Goede avond.
-        {% endif %}
+          {% endif %}
         {% endif %}
         
         {% if call_introduction == 1 %}
@@ -230,6 +647,12 @@ janet_speech_engine:
         {% if call_rain_warning == 1 %}
           {{ rain_warning( witty ( bad_weather(), chance ) ) }}
         {% endif %}
+        {% if call_langskomen == 1 %}
+          {{ langskomen (kind) }}
+        {% endif %}
+        {% if call_leeslamp_weer_aan == 1 %}
+          {{ leeslamp_weer_aan (kind) }}
+        {% endif %}
         {{ CustomMessage }}
         {% if call_bye == 1 %}
           {{ bye() }}
@@ -240,6 +663,72 @@ janet_speech_engine:
         {% if call_new_device == 1 %}
           {{ new_device( witty( introduction(), chance) ) }}
         {% endif %}
+        {% if call_dark_outside == 1 %}
+          {{ dark_outside() }}
+        {% endif %}
+        {% if call_dark_inside == 1 %}
+          {{ dark_inside() }}
+        {% endif %}
+        {% if call_guest_mode_on == 1 %}
+          {{ guest_mode_on() }}
+        {% endif %}
+        {% if call_guest_mode_off == 1 %}
+          {{ guest_mode_off() }}
+        {% endif %}
+        {% if call_responsibilities == 1 %}
+          {{ responsibilities() }}
+        {% endif %}
+        {% if call_inside_weather == 1 %}
+          {{ inside_weather() }}
+        {% endif %}
+        {% if call_outside_weather == 1 %}
+          {{ outside_weather() }}
+        {% endif %}
+        {% if call_light_check == 1 %}
+          {{ light_check() }}
+        {% endif %}
+        {% if call_door_check == 1 %}
+          {{ door_check() }}
+        {% endif %}
+        {% if call_window_check == 1 or is_state('sun.sun', 'below_horizon') %}
+          {{ window_check() }}
+        {% endif %}
+        {% if call_garage_check == 1 or is_state('sun.sun', 'below_horizon') %}
+          {{ garage_check() }}
+        {% endif %}
+        {% if call_iss == 1 %}
+          {{ iss() }}
+        {% endif %}
+        {% if call_moon == 1 %}
+          {{ moon() }}
+        {% endif %}
+        {% if call_lampen_aan == 1 %}
+          {{ lampen_aan (kamer) }}
+        {% endif %}
+        {% if call_lampen_uit == 1 %}
+          {{ lampen_uit (kamer) }}
+        {% endif %}
+        {% if call_alarm_uit == 1 %}
+          {{ alarm_uit() }}
+        {% endif %}
+        {% if call_firealarm == 1 %}
+          {{ firealarm (kamer) }}
+        {% endif %}
+        {% if call_warning_rain == 1 %}
+          {{ warning_rain (kamer) }}
+        {% endif %}
+        {% if call_work_arrive == 1 %}
+          {{ work_arrive (person) }}
+        {% endif %}
+        {% if call_work_left == 1 %}
+          {{ work_left (person) }}
+        {% endif %}
+        {{holiday_sentence()}}        
+        {% if call_no_announcement != 1 %}
+          {# call a Random fact about the house or inspiration quote #}
+          {{ witty( ([iss, uv, moon, outside_weather, inspirational_quote,days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random)(), chance) }}
+        {% endif %}
+
   - service: input_boolean.turn_off
     data:
       entity_id:
@@ -257,10 +746,10 @@ janet_notification_hub:
         {{ media_player }}
       speech_message: >-
         {{ speech_message }}
-#  - service: script.janet_text_processing 
-#    data_template:
-#      speech_message: >-
-#        {{ speech_message }}
+  - service: script.janet_text_processing 
+    data_template:
+      speech_message: >-
+        {{ speech_message }}
 ######################################################################################################
 ##                  Within janet_speech_processing the TTS-service is called.                       ##
 ######################################################################################################
@@ -297,13 +786,20 @@ janet_speech_processing:
       entity_id: >
         {{ media_player }}
       volume_level: >-
-        {{ states.input_number.janet_notification_volume.state }} 
+        {{ states.input_number.janet_notification_volume.state }}
   - service: tts.google_translate_say
     data_template:
+      entity_id: >
+        {{ media_player }}
       message: >-
           {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
       language: nl
-    entity_id: group.google_home_group   
+#  - service: tts.google_translate_say
+#    data_template:
+#      message: >-
+#          {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
+#      language: nl
+#    entity_id: group.google_home_group   
 #  - service: tts.google_translate_say
 #    data_template:
 #      language: nl
@@ -321,13 +817,12 @@ janet_text_processing:
     entity_id: input_boolean.janet_text_notifications
     state: 'on'
 
-  - service: notify.Janet
+  - service: notify.pushbullet
     data_template:
       #TODO
       title: "Janet:"
       message: >-
-        {{ speech_message | replace("\n","") | replace("   ","") |
-           replace("eight hundred and sixty one thousand","861.000") }}
+        {{ speech_message | replace("\n","") | replace("   ","") }}
       
 ######################################################################################################
       

@@ -83,12 +83,14 @@
       - light.lampen_achtertuin
       - light.lampen_voortuin
     service: light.turn_off
-- id: lichtenuitmiddennacht
-  alias: Timer Lights Off uit middennacht
+- id: lichtenuitmiddennacht week
+  alias: Timer Lights Off uit middennacht week
   trigger:
-  - at: '23:29'
+  - at: '22:45'
     platform: time
   condition:
+  - condition: template
+    value_template: '{{now().weekday() != 4 and now().weekday() != 5}}'
   - condition: template
     value_template: '{{((as_timestamp(now())-as_timestamp(states.binary_sensor.presence_woonkamer.last_updated))
       | int /60) > 30}}'
@@ -110,6 +112,40 @@
       - light.entree
       - light.hal
       - light.sonoff_sfeerlicht_speelkamer
+      - light.lampen_achtertuin
+      - light.lampen_voortuin
+    service: light.turn_off
+- id: lichtenuitmiddennacht weekend
+  alias: Timer Lights Off uit middennacht weekend
+  trigger:
+  - at: '23:30'
+    platform: time
+  condition:
+  - condition: template
+    value_template: '{{now().weekday() != 4 and now().weekday() != 5}}'
+  - condition: template
+    value_template: '{{((as_timestamp(now())-as_timestamp(states.binary_sensor.presence_woonkamer.last_updated))
+      | int /60) > 30}}'
+  action:
+  - data:
+      entity_id:
+      - light.sonoff_voord_lamp
+      - light.garagelamp
+      - light.aanrecht
+      - light.bar
+      - light.boventv
+      - light.lampen_eetkamertafel
+      - light.sonoff_schemerlamp_n_bank
+      - light.sonoff_spoelbak_keuken
+      - light.lampen_speelkamer
+      - light.grote_staande_lamp_bank
+      - light.lampen_naast_huis
+      - light.lamp_speelhuisje
+      - light.entree
+      - light.hal
+      - light.sonoff_sfeerlicht_speelkamer
+      - light.lampen_achtertuin
+      - light.lampen_voortuin
     service: light.turn_off
 - id: lichtenaanochtendbuiten
   alias: Timer Lights On ochtend buiten
@@ -202,11 +238,10 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb de lampen in de woonkamer voor je uitgezet
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_lampen_uit: 1
+      kamer: woonkamer
 - id: '15651109342342342'
   alias: Switch Eetkamerdeur lichten uit
   trigger:
@@ -227,11 +262,10 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb de lampen in de woonkamer voor je uitgezet
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_lampen_uit: 1
+      kamer: woonkamer
 - id: knop chillkamer single click
   alias: Switch chillkamer single click
   trigger:
@@ -289,7 +323,7 @@
       event: 1002
   condition:
   - condition: template
-    value_template: '{{  states.sensor.time.state > "6:00" and states.sensor.time.state
+    value_template: '{{  states.sensor.time.state > "06:00" and states.sensor.time.state
       < "21:30"}}'
   action:
   - data:
@@ -447,11 +481,10 @@
       event: 1005
   condition:
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Lars wil graag dat iemand even bij hem langs komt
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_langskomen: 1
+      kind: Lars
 - id: switchnienke1
   alias: Switch Nienke single
   trigger:
@@ -500,18 +533,17 @@
 - id: 1565116042342428b
   alias: Switch Nienke triple
   trigger:
-    platform: event
-    event_type: deconz_event
-    event_data:
-      id: smart_switch_kamer_nienke
+  - event_data:
       event: 1005
+      id: smart_switch_kamer_nienke
+    event_type: deconz_event
+    platform: event
   condition:
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Nienke wil graag dat iemand even bij haar langs komt
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_langskomen: 1
+      kind: Nienke
 - id: '1565808534298'
   alias: Motion Lights On Deur open
   trigger:
@@ -771,11 +803,14 @@
       message: Brandalarm in de eetkamer!
       title: Brandalarm!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Alarm. Brandalarm in de eetkamer. Alarm.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_firealarm: 1
+      kamer: eetkamer
   - service: notify.woonkamerandroidtv
     data:
       message: Alarm. Brandalarm in de eetkamer!
@@ -1154,11 +1189,14 @@
       message: Brandalarm in de garage!
       title: Brandalarm!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Alarm. Brandalarm in de garage. Alarm.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_firealarm: 1
+      kamer: garage
   - service: notify.woonkamerandroidtv
     data:
       message: Alarm. Brandalarm in de garage!
@@ -1231,7 +1269,7 @@
     to: 'on'
   condition: []
   action:
-  - service: script.speech_engine
+  - service: script.janet_speech_engine
     data:
       call_update: 1
   - data:
@@ -1261,11 +1299,10 @@
       entity_id:
       - light.leeslamp_lars
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: Let op, Lars zet zijn leeslamp weer aan.
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_leeslamp_weer_aan: 1
+      kind: Lars
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Lars zet zijn leeslamp weer aan
@@ -1297,11 +1334,10 @@
       entity_id:
       - light.leeslamp_lars
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: Let op, Lars zet zijn leeslamp weer aan.
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_leeslamp_weer_aan: 1
+      kind: Lars
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Lars zet zijn leeslamp weer aan
@@ -1340,11 +1376,14 @@
       message: Brandalarm in de hal boven!
       title: Brandalarm!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Alarm. Brandalarm in de hal boven. Alarm.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_firealarm: 1
+      kamer: halboven
   - service: notify.woonkamerandroidtv
     data:
       message: Alarm. Brandalarm in de hal boven!
@@ -1370,11 +1409,14 @@
       message: Brandalarm op zolder!
       title: Brandalarm!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Alarm. Brandalarm op zolder. Alarm.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_firealarm: 1
+      kamer: zolder
   - service: notify.woonkamerandroidtv
     data:
       message: Alarm. Brandalarm op zolder!
@@ -1427,12 +1469,14 @@
         open!
       title: Regen op komst!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
-        open
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: badkamer
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
@@ -1464,12 +1508,14 @@
         nog open!
       title: Regen op komst!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
-        nog open
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: chillkamer
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
@@ -1501,12 +1547,14 @@
         nog open!
       title: Regen op komst!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
-        nog open
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: slaapkamer
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
@@ -1536,11 +1584,14 @@
       message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
       title: Regen op komst!
     service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: zolder
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
@@ -2006,11 +2057,10 @@
       entity_id:
       - light.leeslamp_nienke
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: Let op, Nienke zet haar leeslamp weer aan
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_leeslamp_weer_aan: 1
+      kind: Nienke
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Nienke zet haar leeslamp weer aan
@@ -2042,11 +2092,10 @@
       entity_id:
       - light.leeslamp_nienke
     service: light.turn_off
-  - service: tts.google_translate_say
-    data_template:
-      message: ' Let op, Nienke zet haar leeslamp weer aan'
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_leeslamp_weer_aan: 1
+      kind: Nienke
   - service: notify.woonkamerandroidtv
     data:
       message: Let op, Nienke zet haar leeslamp weer aan
@@ -3025,15 +3074,10 @@
       code: 1234
     service: alarm_control_panel.alarm_disarm
   - data_template:
-      option: '{% if states.timer.guests_timer.state != "idle" -%}
-		  Guests
-		{%- elif states.timer.extended_away_timer.state != "idle" -%}
-		  Extended Away
-		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
-		  Kids Home Alone
-		{%- else -%}
-		  Home
-		{%- endif %}'
+      option: '{% if states.timer.guests_timer.state != "idle" -%} Guests {%- elif
+        states.timer.extended_away_timer.state != "idle" -%} Extended Away {%- elif
+        states.timer.kids_home_alone_timer.state != "idle" -%} Kids Home Alone {%-
+        else -%} Home {%- endif %}'
       entity_id: input_select.house_mode
     service: input_select.select_option
 - id: '1569219751396'
@@ -3292,22 +3336,15 @@
       code: 1234
     service: alarm_control_panel.alarm_disarm
   - data_template:
-      option: '{% if states.timer.guests_timer.state != "idle" -%}
-		  Guests
-		{%- elif states.timer.extended_away_timer.state != "idle" -%}
-		  Extended Away
-		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
-		  Kids Home Alone
-		{%- else -%}
-		  Home
-		{%- endif %}'
+      option: '{% if states.timer.guests_timer.state != "idle" -%} Guests {%- elif
+        states.timer.extended_away_timer.state != "idle" -%} Extended Away {%- elif
+        states.timer.kids_home_alone_timer.state != "idle" -%} Kids Home Alone {%-
+        else -%} Home {%- endif %}'
       entity_id: input_select.house_mode
     service: input_select.select_option
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb het alarm voor je uitgezet
-      language: nl
-    entity_id: group.google_home_group
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_uit: 1
 - id: 15674fsdfsddfgd9
   alias: Alarm House Disarm Alarm in de ochtend
   trigger:
@@ -3322,15 +3359,10 @@
       code: 1234
     service: alarm_control_panel.alarm_disarm
   - data_template:
-      option: '{% if states.timer.guests_timer.state != "idle" -%}
-		  Guests
-		{%- elif states.timer.extended_away_timer.state != "idle" -%}
-		  Extended Away
-		{%- elif states.timer.kids_home_alone_timer.state != "idle" -%}
-		  Kids Home Alone
-		{%- else -%}
-		  Home
-		{%- endif %}'
+      option: '{% if states.timer.guests_timer.state != "idle" -%} Guests {%- elif
+        states.timer.extended_away_timer.state != "idle" -%} Extended Away {%- elif
+        states.timer.kids_home_alone_timer.state != "idle" -%} Kids Home Alone {%-
+        else -%} Home {%- endif %}'
       entity_id: input_select.house_mode
     service: input_select.select_option
 - id: 1568fsdfsdfsfd9
@@ -3357,8 +3389,8 @@
     platform: time
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > "6:30" and states.sensor.time.state
-      < "8:15"}}'
+    value_template: '{{ states.sensor.time.state > "06:30" and states.sensor.time.state
+      < "08:15"}}'
   - condition: template
     value_template: '{{states.sensor.trash_today.state != "Geen"}}'
   - condition: template
@@ -3379,8 +3411,8 @@
     platform: time
   condition:
   - condition: template
-    value_template: '{{ states.sensor.time.state > "7:00" and states.sensor.time.state
-      < "8:15"}}'
+    value_template: '{{ states.sensor.time.state > "07:00" and states.sensor.time.state
+      < "08:15"}}'
   - condition: template
     value_template: '{{states.sensor.trash_today.state != "Geen"}}'
   action:
@@ -5651,46 +5683,173 @@
       message: Het lijkt erop dat de locatie van Suzanne in Google Maps niet meer
         goed gedeeld wordt. Graag aanpassen
     service: notify.pushbullet
-- id: 587hfghdfh
-  alias: People Greeting
+- id: 583213dfh
+  alias: People Greeting Martijn
   trigger:
     platform: state
     entity_id: person.martijn
     to: home
     for:
       minutes: 3
-  action:
-    service: script.arrive_greetings
-    data_template:
-      personarriving: '{% set person = trigger.entity_id.split(''.'')[1]|replace(''_'',
-        '' '')%} {%- macro greeting_sentence(person) -%} {{ [ "Welkom terug " ~ person,
-        "Raad eens wie thuis is?" ~ person +" is thuis!", person + " is nu in huis.",
-        "Welkom thuis " ~ person + ". Ik heb je gemist.", "Hoi " ~ person + " Welkom
-        thuis!", "Klop, klop. Wie is daar? "   ~ person +" is het!", person ~ "! Je
-        bent thuis!", person + " can not hide from the system. Welcome home.", person
-        ~ "! You are home!", "I know a secret! "  ~ person +" is home!", "Hey "  ~
-        person +". Your arrival has been recorded by the Smartest house on the block.",
-        "Take note Molly! "  ~ person +" is home.", "I am sensing a disturbance in
-        the force. "  ~ person +" must be home!", "And the house becomes a home. Welcome
-        back " ~ person, person + " is now here.  Hash tag Welcome Home.", person
-        + " is now here.  Hash tag Home.", person + " is now here.  Hash tag Smart
-        Home.", "Just a quick announcement. " ~ person +" has arrived!", "Pardon the
-        interruption but " ~ person +" is home!", "My systems are picking up the presence
-        of additional humans. " ~ person +" has been identified as home.", "Welcome
-        home "~person~"! It is nice to see you again! Let me turn on the lights. ",
-        "It looks like "~person~" is finally home! I will get the house ready for
-        you. " ] | random }} {%- endmacro -%} {{greeting_sentence(person)}}
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_martijn.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120 | int}}
 
-        '
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_suzanne.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 10 | int}}
+
+      '
+  action:
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
       call_responsibilities: 1
       call_no_announcement: 1
       call_garage_check: 1
       call_window_check: 1
-- id: 587hfgd432423fh
-  alias: People Greeting test 2
+- id: 583rwrwfh
+  alias: People Greeting Suzanne
+  trigger:
+    platform: state
+    entity_id: person.suzanne
+    to: home
+    for:
+      minutes: 3
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_martijn.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 10 | int}}
+
+      '
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_suzanne.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120 | int}}
+
+      '
+  action:
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
+      call_responsibilities: 1
+      call_no_announcement: 1
+      call_garage_check: 1
+      call_window_check: 1
+- id: 58gsdfgdgd
+  alias: New device connected
+  trigger:
+  - platform: event
+    event_type: device_tracker_new_device
+  action:
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
+      call_new_device: 1
+    data_template:
+      person: '{{ trigger.event.data.name }}'
+- id: 58gdfgdgfwfh
+  alias: Shut Down
+  trigger:
+  - event: shutdown
+    platform: homeassistant
+  - event_type: homeassistant.restart
+    platform: event
+  action:
+  - service: script.janet_speech_engine
+    data:
+      call_bye: 1
+      call_shut_down: 1
+- id: 58fsdfsfwfh
+  alias: Start Up
+  trigger:
+  - event: start
+    platform: homeassistant
+  action:
+  - service: automation.reload
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
+      call_introduction: 1
+- id: 157gdfgdfg541
+  alias: Notification Send notification when Martijn arrived at work
+  description: ''
+  trigger:
+  - entity_id: person.martijn
+    platform: state
+    to: Werk Martijn
+  condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "06:45" and states.sensor.time.state
+      < "09:15" }}'
+  action:
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
+      call_work_arrive: 1
+      person: Martijn
+- id: 157gdfsfs41
+  alias: Notification Send notification when Suzanne arrived at work
+  description: ''
   trigger:
   - entity_id: person.suzanne
     platform: state
-    to: home
+    to: Werk Suzanne ETL
+  - entity_id: person.suzanne
+    platform: state
+    to: Werk Suzanne ZVB
+  condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "06:45" and states.sensor.time.state
+      < "09:15" }}'
   action:
-  - service: script.spraak_engine
+  - data:
+      call_greeting: 1
+      call_work_arrive: 1
+      person: Suzanne
+    service: script.janet_speech_engine
+- id: 157424234s41
+  alias: Notification Send notification when Suzanne left work
+  description: ''
+  trigger:
+  - entity_id: person.suzanne
+    platform: state
+    from: Werk Suzanne ETL
+  - entity_id: person.suzanne
+    platform: state
+    from: Werk Suzanne ZVB
+  condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "13:00" and states.sensor.time.state
+      < "19:30" }}'
+  action:
+  - data:
+      call_greeting: 1
+      call_work_left: 1
+      person: Suzanne
+    service: script.janet_speech_engine
+- id: 1utyrurturt1
+  alias: Notification Send notification when Martijn left work
+  description: ''
+  trigger:
+  - entity_id: person.martijn
+    platform: state
+    from: Werk Martijn
+  condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "19:30" }}'
+  action:
+  - data:
+      call_greeting: 1
+      call_work_left: 1
+      person: Martijn
+    service: script.janet_speech_engine
