@@ -533,6 +533,54 @@
         entity_id: sensor.buienradar_temperature_stats
         unit_of_measurement: '°C'
         value_template: "{{ state_attr('sensor.buienradar_temperature_stats', 'max_value') }}"
+      setpoint_kamer_lars:
+        friendly_name: "Kamer Lars Temp SetPoint"
+        entity_id: climate.thermostaat_kamer_lars
+        unit_of_measurement: '°C'
+        value_template: "{{ state_attr('climate.thermostaat_kamer_lars', 'temperature') }}"
+      setpoint_kamer_nienke:
+        friendly_name: "Kamer Nienke Temp SetPoint"
+        entity_id: climate.thermostaat_kamer_nienke
+        unit_of_measurement: '°C'
+        value_template: "{{ state_attr('climate.thermostaat_kamer_nienke', 'temperature') }}"
+      setpoint_badkamer:
+        friendly_name: "Badkamer Temp SetPoint"
+        entity_id: climate.thermostat_badkamer
+        unit_of_measurement: '°C'
+        value_template: "{{ state_attr('climate.thermostat_badkamer', 'temperature') }}"
+      setpoint_chillkamer:
+        friendly_name: "Chillkamer Temp SetPoint"
+        entity_id: climate.thermostaat_chillkamer
+        unit_of_measurement: '°C'
+        value_template: "{{ state_attr('climate.thermostaat_chillkamer', 'temperature') }}"
+      waqi_nitrogen_dioxide:
+        friendly_name: "WAQI nitrogen dioxide Zevenbergen"
+        entity_id: sensor.waqi_zevenbergen_brabant
+        value_template: "{{ state_attr('sensor.waqi_zevenbergen_brabant', 'nitrogen_dioxide') }}"
+      waqi_pm_10:
+        friendly_name: "WAQI pm10 Zevenbergen"
+        entity_id: sensor.waqi_zevenbergen_brabant
+        value_template: "{{ state_attr('sensor.waqi_zevenbergen_brabant', 'pm_10') }}"
+      waqi_w:
+        friendly_name: "WAQI w Zevenbergen"
+        entity_id: sensor.waqi_zevenbergen_brabant
+        value_template: "{{ state_attr('sensor.waqi_zevenbergen_brabant', 'w') }}"
+      waqi_wg:
+        friendly_name: "WAQI wg Zevenbergen"
+        entity_id: sensor.waqi_zevenbergen_brabant
+        value_template: "{{ state_attr('sensor.waqi_zevenbergen_brabant', 'wg') }}"
+      waqi_pm_2_5:
+        friendly_name: "WAQI pm2.5 Breda"
+        entity_id: sensor.waqi_tilburgseweg_breda
+        value_template: "{{ state_attr('sensor.waqi_tilburgseweg_breda', 'pm_2_5') }}"
+      waqi_ozone:
+        friendly_name: "WAQI ozon Breda"
+        entity_id: sensor.waqi_tilburgseweg_breda
+        value_template: "{{ state_attr('sensor.waqi_tilburgseweg_breda', 'ozone') }}"
+      waqi_pm_2_5_moerdijk:
+        friendly_name: "WAQI pm2.5 Moerdijk"
+        entity_id: sensor.waqi_julianastraat_moerdijk
+        value_template: "{{ state_attr('sensor.waqi_julianastraat_moerdijk', 'pm_2_5') }}"
 
 #  - platform: history_stats
 #    name: Switch Keuken Click Left Total
@@ -577,14 +625,19 @@
 #    automatic_add: true
 
   - platform: afvalwijzer
-    url: 'mijnafvalwijzer.nl'
-    postcode: !secret postcode
-    huisnummer: '8'
-    toevoeging: 'A'
-    label_geen: 'Geen'
+    zipcode: !secret postcode
+    housenumber: '8' 
+    suffix: 'A' 
+  
+#  platform: afvalwijzer
+#    url: 'mijnafvalwijzer.nl'
+#    postcode: !secret postcode
+#    huisnummer: '8'
+#    toevoeging: 'A'
+#    label_geen: 'Geen'
 
-  - platform: pushbullet
-    api_key: !secret pushbullet_api_key
+#  - platform: pushbullet
+#    api_key: !secret pushbullet_api_key
 
   - platform: postnl
     username: !secret postnl_email
@@ -719,3 +772,12 @@
       - rain_3d
       - rain_4d
       - rain_5d
+      
+#World Air Quality Index
+  - platform: waqi
+    token: !secret waqi_token
+    locations:
+      - zevenbergen
+      - Tilburgseweg, Breda
+      - Julianastraat, Moerdijk
+  

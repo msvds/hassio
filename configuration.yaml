@@ -44,24 +44,15 @@ google:
 # Google Assistant & Home
 google_assistant:
   project_id: hassio-252507
-  api_key: !secret google_homegraph_api_secret
+  service_account: !include HASSIO-5a23278380e8.json
+  report_state: true
   exposed_domains:
     - switch
     - light
-    #- group
-    #- climate 
-    #- sensor
   entity_config:
     group.all_automations:
       expose: false
-#    switch.kitchen:
-#      name: CUSTOM_NAME_FOR_GOOGLE_ASSISTANT
-#      aliases:
-#        - BRIGHT_LIGHTS
-#        - ENTRY_LIGHTS
-#    light.living_room:
-#      expose: false
-#      room: LIVING_ROOM
+
 
 # DuckDNS and Let's Encrypt
 http:
@@ -261,14 +252,23 @@ alarm_control_panel:
     trigger_time: 60
     #The time in seconds of the trigger time in which the alarm is firing1
     code_arm_required: false
+    
+    
+# Example configuration.yaml entry for the Telegram Bot
+telegram_bot:
+  - platform: polling
+    api_key: !secret telegram_api
+    allowed_chat_ids:
+      - !secret telegram_chat_id1
+      - !secret telegram_chat_id2
       
 notify:
-  - name: pushbullet
-    platform: pushbullet
-    api_key: !secret pushbullet_api_key
-  - name: pushbullet_suzanne
-    platform: pushbullet
-    api_key: !secret pushbullet_api_key_suzanne
+#  - name: pushbullet
+#    platform: pushbullet
+#    api_key: !secret pushbullet_api_key
+#  - name: pushbullet_suzanne
+#    platform: pushbullet
+#    api_key: !secret pushbullet_api_key_suzanne
   - name: mail_Martijn_to_Suzanne
     platform: smtp
     server: smtp.gmail.com
@@ -288,6 +288,12 @@ notify:
   - platform: nfandroidtv
     name: WoonkamerAndroidTV
     host: 192.168.1.28
+  - name: telegram_martijn
+    platform: telegram
+    chat_id: !secret telegram_chat_id1
+  - name: telegram_suzanne
+    platform: telegram
+    chat_id: !secret telegram_chat_id2
 
 input_boolean:
   test_notification:
@@ -447,6 +453,12 @@ input_boolean:
   janet_text_notifications:
     name: Text Notifications
     icon: mdi:message-text-outline
+  workday_martijn:
+    name: Werkdag Martijn
+  workday_suzanne:
+    name: Werkdag Suzanne
+  schoolday_kids:
+    name: Schooldag kinderen
   
 #  guest_mode:
 #    name: Gasten aanwezig
@@ -474,6 +486,13 @@ input_select:
     options:
       - Badkamer
       - Keuken hub
+  janet_text_notification_target:
+    name: Text bericht doelgroep
+    icon: mdi:speaker
+    options:
+      - Martijn
+      - Suzanne
+      - All
     
 input_datetime:
   mockupancy_bedtime:
@@ -1176,7 +1195,7 @@ group: !include groups.yaml
 #recorder: !include recorder.yaml
 #logbook: !include logbook.yaml
 #history: !include history.yaml
-zone: !include zones.yaml
+#zone: !include zones.yaml
 #scene: !include scenes.yaml
 #input_select: !include input_select.yaml
 #script: !include scripts.yaml

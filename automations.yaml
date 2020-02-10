@@ -7,14 +7,10 @@
     value_template: '{{states.sensor.br_irradiance.state | int < states.input_number.condition_br_irradiance_lights_on.state
       | int}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
-  - before: sunset
-    condition: sun
   - condition: template
-    value_template: '{{  states.sensor.time.state > "15:00" and states.sensor.time.state
-      < "23:59"}}'
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
+  - condition: template
+    value_template: '{{  states.sensor.time.state > "15:00" and states.sensor.time.state < "23:59"}}'
   action:
   - data:
       brightness: 50
@@ -40,11 +36,8 @@
     value_template: '{{states.sensor.br_irradiance.state | int < states.input_number.condition_br_irradiance_lights_on.state
       | int}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
-  - before: sunset
-    condition: sun
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{  states.sensor.time.state > "15:00" and states.sensor.time.state
       < "23:59"}}'
@@ -122,7 +115,7 @@
     platform: time
   condition:
   - condition: template
-    value_template: '{{now().weekday() != 4 and now().weekday() != 5}}'
+    value_template: '{{now().weekday() == 4 and now().weekday() == 5}}'
   - condition: template
     value_template: '{{((as_timestamp(now())-as_timestamp(states.binary_sensor.presence_woonkamer.last_updated))
       | int /60) > 30}}'
@@ -153,9 +146,8 @@
   - at: 06:25
     platform: time
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{ states.sun.sun.state == "below_horizon"}}'
   action:
@@ -238,10 +230,20 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_speech_notifications
   - service: script.janet_speech_engine
     data:
       call_lampen_uit: 1
       kamer: woonkamer
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_speech_notifications
 - id: '15651109342342342'
   alias: Switch Eetkamerdeur lichten uit
   trigger:
@@ -262,10 +264,20 @@
       - light.lampen_toilet_beneden
       - light.lampen_toilet_boven
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_speech_notifications
   - service: script.janet_speech_engine
     data:
       call_lampen_uit: 1
       kamer: woonkamer
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_speech_notifications
 - id: knop chillkamer single click
   alias: Switch chillkamer single click
   trigger:
@@ -481,6 +493,10 @@
       event: 1005
   condition:
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_langskomen: 1
@@ -540,6 +556,10 @@
     platform: event
   condition:
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_langskomen: 1
@@ -678,6 +698,12 @@
     to: 'on'
   condition:
   - condition: template
+    value_template: '{% set last_triggered = states.automation.motion_lights_on_woonkamer_net_voor_zonsondergang.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 15}}
+
+      '
+  - condition: template
     value_template: '{{ states.sun.sun.state == "above_horizon"}}'
   - after: sunset
     after_offset: -00:25:00
@@ -738,12 +764,17 @@
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
   action:
-  - service: camera.record
+  - service: input_boolean.turn_on
     data:
-      entity_id: camera.dafang_camera_1
-      filename: /config/video/alarm_house_motion_nacht_{{ now().strftime("%Y%m%d-%H%M%S")
-        }}.mp4
-      duration: 1200
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Alarm. Er is beweging in de woonkamer gedurende de nacht. Alarm. Opname geactiveerd met de beveiligings camera. Ik herhaal. Opname geactiveerd met de beveiligings camera.
+      inline_keyboard: 'Sirene Aan:/siren-on, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
   - data:
       brightness: 200
       color_temp: 328
@@ -753,28 +784,51 @@
       - light.lampen_woonkamer
       - light.lampen_keuken
     service: light.turn_on
+- id: 'telegram_siren-on_Motion_woonkamer_nacht'
+  alias: 'Telegram callback to switch on the siren when it was triggered due to movement in the night'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/siren-on'
+  action:
   - data:
-      message: Er is beweging 's nachts in de woonkamer
-      title: Beweging 's nachts
-    service: notify.pushbullet
+      entity_id:
+      - switch.warning_device_garage
+    service: switch.turn_on
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Sirene aangezet ivm beweging in de woonkamer gedurende de nacht
+      inline_keyboard: 'Laat Sirene Aan:/siren-on, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
+- id: 'telegram_alarm-off_Motion_woonkamer_nacht'
+  alias: 'Telegram callback to switch off the alarm when it was triggered due to movement in the night'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/alarm-off'
+  action:
   - data:
-      message: Er is beweging 's nachts in de woonkamer
-      title: Beweging 's nachts
-    service: notify.pushbullet_suzanne
-  - service: media_player.volume_set
+      entity_id: alarm_control_panel.home_alarm
+      code: 1234
+    service: alarm_control_panel.alarm_disarm
+  - service: telegram_bot.answer_callback_query
     data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.9
-  - service: tts.google_translate_say
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zet het alarm voor je uit'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
     data_template:
-      message: Alarm. Er is beweging s nachts in de woonkamer. Alarm. Opname geactiveerd
-        voor de beveiligingscameras. Ik herhaal, opname geactiveerd voor de beveiligingscameras
-      language: nl
-    entity_id: group.google_home_group
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.5
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
 - id: '1565948520644'
   alias: Miscellaneous Test Notifications
   trigger:
@@ -782,11 +836,14 @@
     platform: state
     to: 'on'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Dit is een test bericht
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Dit is een test bericht
+      inline_keyboard: '30 Minutes:/30m, 1 Hour:/1h, 3 Hours:/3h, Never:/removekeyboard'
 - id: '1565949253532'
   alias: Alarm Fire eetkamer
   trigger:
@@ -806,6 +863,10 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
@@ -930,28 +991,21 @@
   - condition: template
     value_template: '{{ states.sensor.br_temperature.state | float > 15 }}'
   - condition: template
-    value_template: '{{ states.group.all_devices.state == "home"}}'
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data:
-      message: Deur slaapkamer {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Deur open
-    service: notify.pushbullet
-  - data:
-      message: Deur slaapkamer {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Deur open
-    service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Kan iemand de slaapkamerdeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated))
-        | int /60) | int}} minuten open.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: slaapkamerdeur
+      inline_keyboard: '10 min:/10m-slaapkamerdeur-open, 30 min:/30m-slaapkamerdeur-open, 3 uur:/3h-slaapkamerdeur-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Kan iemand de slaapkamerdeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated))
@@ -962,6 +1016,99 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_slaapkamerdeur-open'
+  alias: 'Telegram callback to repeat slaapkamerdeur-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-slaapkamerdeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.slaapkamerdeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: slaapkamerdeur
+      inline_keyboard: '10 min:/10m-slaapkamerdeur-open, 30 min:/30m-slaapkamerdeur-open, 3 uur:/3h-slaapkamerdeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_slaapkamerdeur-open'
+  alias: 'Telegram callback to repeat slaapkamerdeur-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-slaapkamerdeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.slaapkamerdeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: slaapkamerdeur
+      inline_keyboard: '10 min:/10m-slaapkamerdeur-open, 30 min:/30m-slaapkamerdeur-open, 3 uur:/3h-slaapkamerdeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_slaapkamerdeur-open'
+  alias: 'Telegram callback to repeat slaapkamerdeur-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-slaapkamerdeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.slaapkamerdeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: slaapkamerdeur
+      inline_keyboard: '10 min:/10m-slaapkamerdeur-open, 30 min:/30m-slaapkamerdeur-open, 3 uur:/3h-slaapkamerdeur-open, Geen herinnering:/removekeyboard'
 - id: '1566210044120'
   alias: Motion Lights On Hal Boven
   trigger:
@@ -1192,6 +1339,10 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
@@ -1269,6 +1420,10 @@
     to: 'on'
   condition: []
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_update: 1
@@ -1299,6 +1454,10 @@
       entity_id:
       - light.leeslamp_lars
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_leeslamp_weer_aan: 1
@@ -1334,6 +1493,10 @@
       entity_id:
       - light.leeslamp_lars
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_leeslamp_weer_aan: 1
@@ -1379,6 +1542,10 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
@@ -1412,6 +1579,10 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
@@ -1472,11 +1643,16 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
       call_warning_rain: 1
       kamer: badkamer
+      inline_keyboard: '10 min:/10m-dakraambadkamer-open, 30 min:/30m-dakraambadkamer-open, 3 uur:/3h-dakraambadkamer-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
@@ -1487,6 +1663,102 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_dakraambadkamer-open'
+  alias: 'Telegram callback to repeat dakraambadkamer-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-dakraambadkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_badkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: badkamer
+      inline_keyboard: '10 min:/10m-dakraambadkamer-open, 30 min:/30m-dakraambadkamer-open, 3 uur:/3h-dakraambadkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_dakraambadkamer-open'
+  alias: 'Telegram callback to repeat dakraambadkamer-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-dakraambadkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_badkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: badkamer
+      inline_keyboard: '10 min:/10m-dakraambadkamer-open, 30 min:/30m-dakraambadkamer-open, 3 uur:/3h-dakraambadkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_dakraambadkamer-open'
+  alias: 'Telegram callback to repeat dakraambadkamer-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-dakraambadkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_badkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: badkamer
+      inline_keyboard: '10 min:/10m-dakraambadkamer-open, 30 min:/30m-dakraambadkamer-open, 3 uur:/3h-dakraambadkamer-open, Geen herinnering:/removekeyboard'
 - id: 15674049gfdgd64
   alias: Alert Window Dakraam chillkamer open bij regen voorspelling
   trigger:
@@ -1511,11 +1783,16 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
       call_warning_rain: 1
       kamer: chillkamer
+      inline_keyboard: '10 min:/10m-dakraamchillkamer-open, 30 min:/30m-dakraamchillkamer-open, 3 uur:/3h-dakraamchillkamer-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
@@ -1526,6 +1803,102 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_dakraamchillkamer-open'
+  alias: 'Telegram callback to repeat dakraamchillkamer-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-dakraamchillkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_chillkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: chillkamer
+      inline_keyboard: '10 min:/10m-dakraamchillkamer-open, 30 min:/30m-dakraamchillkamer-open, 3 uur:/3h-dakraamchillkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_dakraamchillkamer-open'
+  alias: 'Telegram callback to repeat dakraamchillkamer-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-dakraamchillkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_chillkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: chillkamer
+      inline_keyboard: '10 min:/10m-dakraamchillkamer-open, 30 min:/30m-dakraamchillkamer-open, 3 uur:/3h-dakraamchillkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_dakraamchillkamer-open'
+  alias: 'Telegram callback to repeat dakraamchillkamer-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-dakraamchillkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_chillkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: chillkamer
+      inline_keyboard: '10 min:/10m-dakraamchillkamer-open, 30 min:/30m-dakraamchillkamer-open, 3 uur:/3h-dakraamchillkamer-open, Geen herinnering:/removekeyboard'
 - id: 1567dsadadasda
   alias: Alert Window Dakraam slaapkamer open bij regen voorspelling
   trigger:
@@ -1550,11 +1923,16 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
       call_warning_rain: 1
       kamer: slaapkamer
+      inline_keyboard: '10 min:/10m-dakraamslaapkamer-open, 30 min:/30m-dakraamslaapkamer-open, 3 uur:/3h-dakraamslaapkamer-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
@@ -1565,6 +1943,102 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_dakraamslaapkamer-open'
+  alias: 'Telegram callback to repeat dakraamslaapkamer-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-dakraamslaapkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_slaapkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: slaapkamer
+      inline_keyboard: '10 min:/10m-dakraamslaapkamer-open, 30 min:/30m-dakraamslaapkamer-open, 3 uur:/3h-dakraamslaapkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_dakraamslaapkamer-open'
+  alias: 'Telegram callback to repeat dakraamslaapkamer-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-dakraamslaapkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_slaapkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: slaapkamer
+      inline_keyboard: '10 min:/10m-dakraamslaapkamer-open, 30 min:/30m-dakraamslaapkamer-open, 3 uur:/3h-dakraamslaapkamer-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_dakraamslaapkamer-open'
+  alias: 'Telegram callback to repeat dakraamslaapkamer-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-dakraamslaapkamer-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_slaapkamer.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: slaapkamer
+      inline_keyboard: '10 min:/10m-dakraamslaapkamer-open, 30 min:/30m-dakraamslaapkamer-open, 3 uur:/3h-dakraamslaapkamer-open, Geen herinnering:/removekeyboard'
 - id: 1567dsfsdfsdfsa
   alias: Alert Window Dakraam zolder open bij regen voorspelling
   trigger:
@@ -1587,11 +2061,16 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_no_announcement: 1
       call_warning_rain: 1
       kamer: zolder
+      inline_keyboard: '10 min:/10m-dakraamzolder-open, 30 min:/30m-dakraamzolder-open, 3 uur:/3h-dakraamzolder-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
@@ -1601,6 +2080,102 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_dakraamzolder-open'
+  alias: 'Telegram callback to repeat dakraamzolder-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-dakraamzolder-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_zolder.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: zolder
+      inline_keyboard: '10 min:/10m-dakraamzolder-open, 30 min:/30m-dakraamzolder-open, 3 uur:/3h-dakraamzolder-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_dakraamzolder-open'
+  alias: 'Telegram callback to repeat dakraamzolder-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-dakraamzolder-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_zolder.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: zolder
+      inline_keyboard: '10 min:/10m-dakraamzolder-open, 30 min:/30m-dakraamzolder-open, 3 uur:/3h-dakraamzolder-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_dakraamzolder-open'
+  alias: 'Telegram callback to repeat dakraamzolder-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-dakraamzolder-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.dakraam_zolder.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_no_announcement: 1
+      call_warning_rain: 1
+      kamer: zolder
+      inline_keyboard: '10 min:/10m-dakraamzolder-open, 30 min:/30m-dakraamzolder-open, 3 uur:/3h-dakraamzolder-open, Geen herinnering:/removekeyboard'
 - id: '1567498146613'
   alias: Switch Eetkamertafel
   trigger:
@@ -1743,11 +2318,13 @@
       - light.lampen_woonkamer
       - light.lampen_keuken
     service: light.turn_on
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb de lampen in de woonkamer voor je gedimd aangezet
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
 - id: '1567645645668'
   alias: Switch Eetkamerdeur lichten aan
   trigger:
@@ -1770,11 +2347,13 @@
       - light.lampen_woonkamer
       - light.lampen_keuken
     service: light.turn_on
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb de lampen in de woonkamer voor je gedimd aangezet
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
 - id: '1567502350372'
   alias: Miscellaneous Test timer
   trigger:
@@ -2017,15 +2596,13 @@
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data:
-      message: De voorraad zout in de waterontharder is op. Graag bijvullen.
-      title: Zoutvoorraad op!
-    service: notify.pushbullet
-  - service: tts.google_translate_say
-    data_template:
-      message: Let op, de voorraad zout in de waterontharder is op. Graag bijvullen.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Let op. De voorraad zout in de waterontharder is op. Graag bijvullen.
   - service: notify.woonkamerandroidtv
     data:
       message: De voorraad zout in de waterontharder is op. Graag bijvullen.
@@ -2057,6 +2634,10 @@
       entity_id:
       - light.leeslamp_nienke
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_leeslamp_weer_aan: 1
@@ -2092,6 +2673,10 @@
       entity_id:
       - light.leeslamp_nienke
     service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_leeslamp_weer_aan: 1
@@ -2190,28 +2775,21 @@
     value_template: '{{ states.sensor.temp_keuken.state | float - states.sensor.temp_bijkeuken.state
       | float > 5}}'
   - condition: template
-    value_template: '{{ states.group.all_devices.state == "home"}}'
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data:
-      message: Deur bijkeuken {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Deur open
-    service: notify.pushbullet
-  - data:
-      message: Deur bijkeuken {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Deur open
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: Kan iemand de bijkeukendeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated))
-        | int /60) | int}} minuten open.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: bijkeukendeur
+      inline_keyboard: '10 min:/10m-bijkeukendeur-open, 30 min:/30m-bijkeukendeur-open, 3 uur:/3h-bijkeukendeur-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Deur bijkeuken {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated))
@@ -2222,11 +2800,104 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_bijkeukendeur-open'
+  alias: 'Telegram callback to repeat bijkeukendeur-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-bijkeukendeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.bijkeukendeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: bijkeukendeur
+      inline_keyboard: '10 min:/10m-bijkeukendeur-open, 30 min:/30m-bijkeukendeur-open, 3 uur:/3h-bijkeukendeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_bijkeukendeur-open'
+  alias: 'Telegram callback to repeat bijkeukendeur-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-bijkeukendeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.bijkeukendeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: bijkeukendeur
+      inline_keyboard: '10 min:/10m-bijkeukendeur-open, 30 min:/30m-bijkeukendeur-open, 3 uur:/3h-bijkeukendeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_bijkeukendeur-open'
+  alias: 'Telegram callback to repeat bijkeukendeur-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-bijkeukendeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.bijkeukendeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: bijkeukendeur
+      inline_keyboard: '10 min:/10m-bijkeukendeur-open, 30 min:/30m-bijkeukendeur-open, 3 uur:/3h-bijkeukendeur-open, Geen herinnering:/removekeyboard'
 - id: '1567777566517'
   alias: Alert Door garagedeur open
   trigger:
   - entity_id: binary_sensor.garagedeur
-    for: 00:15:00
+    for: 00:07:00
     platform: state
     to: 'on'
   condition:
@@ -2235,22 +2906,15 @@
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data:
-      message: Garagedeur {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Garagedeur open
-    service: notify.pushbullet
-  - data:
-      message: Garagedeur {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated))
-        | int /60) | int}} minuten open
-      title: Garagedeur open
-    service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Kan iemand de garagedeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated))
-        | int /60) | int}} minuten open.
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: garagedeur
+      inline_keyboard: '10 min:/10m-garagedeur-open, 30 min:/30m-garagedeur-open, 3 uur:/3h-garagedeur-open, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: Garagedeur {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated))
@@ -2261,6 +2925,99 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_garagedeur-open'
+  alias: 'Telegram callback to repeat garagedeur-open message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-garagedeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.garagedeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'  
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: garagedeur
+      inline_keyboard: '10 min:/10m-garagedeur-open, 30 min:/30m-garagedeur-open, 3 uur:/3h-garagedeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_garagedeur-open'
+  alias: 'Telegram callback to repeat garagedeur-open message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-garagedeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.garagedeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: garagedeur
+      inline_keyboard: '10 min:/10m-garagedeur-open, 30 min:/30m-garagedeur-open, 3 uur:/3h-garagedeur-open, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_garagedeur-open'
+  alias: 'Telegram callback to repeat garagedeur-open message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-garagedeur-open'
+  condition:
+  - condition: template
+    value_template: '{{ states.binary_sensor.garagedeur.state == "on"}}'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_deur_lang_open: 1
+      deur: garagedeur
+      inline_keyboard: '10 min:/10m-garagedeur-open, 30 min:/30m-garagedeur-open, 3 uur:/3h-garagedeur-open, Geen herinnering:/removekeyboard'
 - id: thermo_on_mo1
   alias: Timer Heating On thermostaat aan ma 1
   trigger:
@@ -2268,9 +3025,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_mo1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 0}}'
   - condition: state
@@ -2306,9 +3062,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_tu1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 1}}'
   - condition: state
@@ -2344,9 +3099,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_we1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 2}}'
   - condition: state
@@ -2382,9 +3136,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_th1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 3}}'
   - condition: state
@@ -2420,9 +3173,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_fr1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 4}}'
   - condition: state
@@ -2458,9 +3210,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_sa1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 5}}'
   - condition: state
@@ -2496,9 +3247,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_su1.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 6}}'
   - condition: state
@@ -2534,9 +3284,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_mo2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 0}}'
   - condition: state
@@ -2572,9 +3321,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_tu2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 1}}'
   - condition: state
@@ -2610,9 +3358,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_we2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 2}}'
   - condition: state
@@ -2648,9 +3395,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_th2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 3}}'
   - condition: state
@@ -2686,9 +3432,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_fr2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 4}}'
   - condition: state
@@ -2724,9 +3469,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_sa2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 5}}'
   - condition: state
@@ -2762,9 +3506,8 @@
     value_template: '{{ states.sensor.time.state == states.input_datetime.thermostat_on_su2.state[0:5]
       }}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   - condition: template
     value_template: '{{now().weekday() == 6}}'
   - condition: state
@@ -2878,19 +3621,14 @@
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
   - delay: 00:15:00
-  - data:
-      message: De wasmachine is klaar
-      title: Wasmachine
-    service: notify.pushbullet
-  - data:
-      message: De wasmachine is klaar
-      title: Wasmachine
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De wasmachine is klaar
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: De wasmachine is klaar
+      inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
       message: De wasmachine is klaar
@@ -2900,6 +3638,87 @@
         duration: 5
         position: center
         interrupt: 0
+- id: 'telegramrepeat_10m_wasmachine'
+  alias: 'Telegram callback to repeat wasmachine message in 10 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/10m-wasmachine'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 10 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:10:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: De wasmachine is klaar
+      inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_30m_wasmachine'
+  alias: 'Telegram callback to repeat wasmachine message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m-wasmachine'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '00:30:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: De wasmachine is klaar
+      inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
+- id: 'telegramrepeat_3h_wasmachine'
+  alias: 'Telegram callback to repeat wasmachine message in 3 hours'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/3h-wasmachine'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 3 uren er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: [] 
+  - delay: '03:00:00'
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: De wasmachine is klaar
+      inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
 - id: '1568903418336'
   alias: Motion Heating On Kamer Lars
   trigger:
@@ -2913,7 +3732,7 @@
       < "18:00"}}'
   action:
   - data:
-      entity_id: climate.roomlars_roomlars_rad2
+      entity_id: climate.thermostaat_kamer_lars
       temperature: 21
     service: climate.set_temperature
 - id: '1568904307622'
@@ -2927,7 +3746,7 @@
   condition: []
   action:
   - data:
-      entity_id: climate.roomlars_roomlars_rad2
+      entity_id: climate.thermostaat_kamer_lars
       temperature: 12
     service: climate.set_temperature
 - id: 1568903sfsdf36
@@ -2943,7 +3762,7 @@
       < "18:00"}}'
   action:
   - data:
-      entity_id: climate.roomnienke_roomnienke_rad
+      entity_id: climate.thermostaat_kamer_nienke
       temperature: 21
     service: climate.set_temperature
 - id: '1568534534507622'
@@ -2957,7 +3776,7 @@
   condition: []
   action:
   - data:
-      entity_id: climate.roomnienke_roomnienke_rad
+      entity_id: climate.thermostaat_kamer_nienke
       temperature: 12
     service: climate.set_temperature
 - id: '1568903534534536'
@@ -3029,7 +3848,7 @@
       < "17:30"}}'
   action:
   - data:
-      entity_id: climate.chillroom_chillroom_rad
+      entity_id: climate.thermostaat_chillkamer
       temperature: 21
     service: climate.set_temperature
 - id: '156864564622'
@@ -3043,14 +3862,14 @@
   condition: []
   action:
   - data:
-      entity_id: climate.chillroom_chillroom_rad
+      entity_id: climate.thermostaat_chillkamer
       temperature: 12
     service: climate.set_temperature
 - id: '1568979516019'
   alias: Alarm House Arm bij vertrek
   trigger:
   - platform: template
-    value_template: '{{ states.group.all_devices.state != "home"}}'
+    value_template: '{{ states.person.martijn.state != "home" and states.person.suzanne.state != "home" }}'
   condition:
   - condition: template
     value_template: '{{ states.input_select.house_mode.state != "Kids Home Alone"
@@ -3066,7 +3885,7 @@
   alias: Alarm House Disarm bij thuiskomst
   trigger:
   - platform: template
-    value_template: '{{ states.group.all_devices.state == "home"}}'
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   condition: []
   action:
   - data:
@@ -3114,29 +3933,40 @@
   action:
   - service: alarm_control_panel.alarm_trigger
     entity_id: alarm_control_panel.home_alarm
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: ALARM. Het alarm is getriggered doordat een deur is geopend. Er is 1 minuut om het alarm te deactiveren
+      inline_keyboard: 'Sirene Aan:/siren-on-deur-open, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
+- id: 'telegram_siren-on_deur_open_nacht'
+  alias: 'Telegram callback to switch on the siren when it was triggered due to door opening'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/siren-on-deur-open'
+  action:
   - data:
-      message: ALARM! Het alarm is getriggered doordat een deur is geopend! Er is
-        1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet
-  - data:
-      message: ALARM! Het alarm is getriggered doordat een deur is geopend! Er is
-        1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet_suzanne
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.9
-  - service: tts.google_translate_say
-    data_template:
-      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
-      language: nl
-    entity_id: group.google_home_group
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.5
+      entity_id:
+      - switch.warning_device_garage
+    service: switch.turn_on
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Sirene aangezet doordat een deur is geopend
+      inline_keyboard: 'Laat Sirene Aan:/siren-on-deur-open, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: '156942534534396'
   alias: Alarm House Beweging bij arm away
   trigger:
@@ -3180,29 +4010,40 @@
   action:
   - service: alarm_control_panel.alarm_trigger
     entity_id: alarm_control_panel.home_alarm
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      inline_keyboard: 'Sirene Aan:/siren-on-movement, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
+- id: 'telegram_siren-on_Beweging'
+  alias: 'Telegram callback to switch on the siren when it was triggered due to movement'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/siren-on-movement'
+  action:
   - data:
-      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
-        Er is 1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet
-  - data:
-      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
-        Er is 1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet_suzanne
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.9
-  - service: tts.google_translate_say
-    data_template:
-      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
-      language: nl
-    entity_id: group.google_home_group
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.5
+      entity_id:
+      - switch.warning_device_garage
+    service: switch.turn_on
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd
+      inline_keyboard: 'Laat Sirene Aan:/siren-on-movement, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 15694tertet4396
   alias: Alarm House Beweging bij arm home
   trigger:
@@ -3228,29 +4069,40 @@
   action:
   - service: alarm_control_panel.alarm_trigger
     entity_id: alarm_control_panel.home_alarm
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      inline_keyboard: 'Sirene Aan:/siren-on-movement-arm-home, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
+- id: 'telegram_siren-on_Beweging-arm-home'
+  alias: 'Telegram callback to switch on the siren when it was triggered due to movement arm home'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/siren-on-movement-arm-home'
+  action:
   - data:
-      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
-        Er is 1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet
-  - data:
-      message: ALARM! Het alarm is getriggered doordat er beweging is gedetecteerd!
-        Er is 1 minuut om het alarm te deactiveren
-      title: ALARM
-    service: notify.pushbullet_suzanne
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.9
-  - service: tts.google_translate_say
-    data_template:
-      message: Beweging gedetecteerd. Er is 1 minuut om het alarm te deactiveren
-      language: nl
-    entity_id: group.google_home_group
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.5
+      entity_id:
+      - switch.warning_device_garage
+    service: switch.turn_on
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd
+      inline_keyboard: 'Laat Sirene Aan:/siren-on-movement-arm-home, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 15689fsdfsdfsd19
   alias: Alarm House Send notification when alarm triggered
   trigger:
@@ -3258,25 +4110,16 @@
     entity_id: alarm_control_panel.home_alarm
     to: triggered
   action:
-  - data:
-      message: ALARM! Het alarm is getriggered door beweging of het openen van een
-        deur!
-      title: ALARM
-    service: notify.pushbullet
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.9
-  - service: tts.google_translate_say
-    data_template:
-      message: ALARM. Het is getriggered door beweging of het openen van een deur.
-        ALARM.
-      language: nl
-    entity_id: group.google_home_group
-  - service: media_player.volume_set
-    data_template:
-      entity_id: group.google_home_group
-      volume_level: 0.5
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: ALARM. Het is getriggered door beweging of het openen van een deur. ALARM.
 - id: 15689f534535dfsd19
   alias: Alarm House Send notification when alarm is Disarmed
   trigger:
@@ -3342,6 +4185,10 @@
         else -%} Home {%- endif %}'
       entity_id: input_select.house_mode
     service: input_select.select_option
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
   - service: script.janet_speech_engine
     data:
       call_alarm_uit: 1
@@ -3352,7 +4199,7 @@
     platform: time
   condition:
   - condition: template
-    value_template: '{{ states.group.all_devices.state == "home"}}'
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
   action:
   - data:
       entity_id: alarm_control_panel.home_alarm
@@ -3372,16 +4219,16 @@
     entity_id: alarm_control_panel.home_alarm
     to: triggered
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop
-        de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet
-    data_template:
-      message: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop
-        de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
 - id: '15653453453046'
   alias: Notification ijskrabben google home
   trigger:
@@ -3392,59 +4239,17 @@
     value_template: '{{ states.sensor.time.state > "06:30" and states.sensor.time.state
       < "08:15"}}'
   - condition: template
-    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
-  - condition: template
     value_template: '{{states.binary_sensor.workday_sensor.state == "on"}}'
   - condition: template
     value_template: '{{states.sensor.br_ground_temperature.state | float < -0.5}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Goedemorgen. Waarschijnlijk moet je zo krabbben, want het vriest op
-        het moment aan de grond}}
-      language: nl
-    entity_id: group.google_home_group
-- id: '1569225894046'
-  alias: Notification trash today google home
-  trigger:
-  - at: 07:52:00
-    platform: time
-  condition:
-  - condition: template
-    value_template: '{{ states.sensor.time.state > "07:00" and states.sensor.time.state
-      < "08:15"}}'
-  - condition: template
-    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
-  action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Goedemorgen. Vandaag moet de container buiten gezet worden, namelijk
-        van de {{states.sensor.trash_today.state }}
-      language: nl
-    entity_id: group.google_home_group
-- id: '1569226456446'
-  alias: Notification trash today pushbullet
-  trigger:
-  - at: 07:45:00
-    platform: time
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.trash_today.state != "Geen"}}'
-  action:
-  - data:
-      message: 'Vandaag moet de container buiten gezet worden, namelijk van de {{
-        states("sensor.trash_today") }}
-
-        '
-      title: Container
-    service: notify.pushbullet
-  - data:
-      message: 'Vandaag moet de container buiten gezet worden, namelijk van de {{
-        states("sensor.trash_today") }}
-
-        '
-      title: Container
-    service: notify.pushbullet_suzanne
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Goedemorgen. Waarschijnlijk moet je zo krabbben, want het vriest op het moment aan de grond
 - id: '1569228681431'
   alias: Alert Other Empty Batteries
   trigger:
@@ -3469,7 +4274,7 @@
   alias: Status Langdurig vertrek
   trigger:
   - platform: template
-    value_template: '{{ states.group.all_devices.state != "home"}}'
+    value_template: '{{ states.person.martijn.state != "home" and states.person.suzanne.state != "home" }}'
     for:
       hours: 24
   action:
@@ -3477,30 +4282,6 @@
     entity_id: input_select.house_mode
     data:
       option: Extended Away
-- id: '1570793126541'
-  alias: Notification Email when Martijn is leaving work
-  description: ''
-  trigger:
-  - entity_id: person.martijn
-    from: Werk Martijn
-    platform: state
-    to: Afwezig
-  condition:
-  - condition: template
-    value_template: '{{now().weekday() == 3}}'
-  - condition: template
-    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
-      < "18:15"}}'
-  action:
-  - data:
-      message: Martijn is vertrokken van zijn werk, een paar minuten en hij is er
-      title: Martijn komt er aan
-    service: notify.pushbullet_suzanne
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vertrokken van zijn werk, een kwartiertje en hij is er
-      language: nl
-    entity_id: group.google_home_group
 - id: 157079fsdfsdf541
   alias: Notification Send notification when Suzanne is coming home from work
   description: ''
@@ -3508,24 +4289,19 @@
   - entity_id: person.suzanne
     from: Werk Suzanne ETL
     platform: state
-    to: Afwezig
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
       < "18:15"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vertrokken van haar werk. Ze moet nog {{states.sensor.suzanne_naar_huis.attributes.distance}}
-        kilometer rijden, dus als ze met de auto is dan is ze over {{states.sensor.suzanne_naar_huis.state
-        }} minuten thuis
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet
-    data_template:
-      message: Suzanne is vertrokken van haar werk. Ze moet nog {{states.sensor.suzanne_naar_huis.attributes.distance}}
-        rijden, dus als ze met de auto is dan is ze over {{states.sensor.suzanne_naar_huis.state
-        }} minuten thuis
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken: 1
+      person: Suzanne
 - id: 15707432423f541
   alias: Notification Send notification when Suzanne is coming home from work Auto
     2
@@ -3534,19 +4310,19 @@
   - entity_id: person.suzanne
     from: Suzanne Etten-Leur Auto Meetpunt
     platform: state
-    to: Afwezig
   condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vertrokken van haar werk. Ze moet nog 10 kilometer rijden,
-        dus als ze met de auto is dan is ze over 12 minuten thuis
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet
-    data_template:
-      message: Suzanne is vertrokken van haar werk. Ze moet nog 10 kilometer rijden,
-        dus als ze met de auto is dan is ze over 12 minuten thuis
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_auto: 1
+      person: Suzanne
 - id: 157079fs535353541
   alias: Notification Send notification when Suzanne is coming home from work Fiets
   description: ''
@@ -3554,7 +4330,6 @@
   - entity_id: person.suzanne
     from: Werk Suzanne ETL
     platform: state
-    to: Afwezig
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
@@ -3564,20 +4339,14 @@
       | int > 1 and states.device_tracker.life360_suzanne_schelhaas.attributes.speed
       | int < 30 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets
-        is. Ze moet nog {{states.sensor.suzanne_naar_huis_fiets.attributes.distance}}
-        fietsen, dus over {{states.sensor.suzanne_naar_huis_fiets.state }} minuten
-        is ze er
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet
-    data_template:
-      message: Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets
-        is. Ze moet nog {{states.sensor.suzanne_naar_huis_fiets.attributes.distance}}
-        fietsen, dus over {{states.sensor.sensor.suzanne_naar_huis_fiets.state }}
-        minuten is ze er
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_fiets: 1
+      person: Suzanne
 - id: 157079fs535353541
   alias: Notification Send notification when Suzanne is coming home from work Fiets
     2
@@ -3586,19 +4355,19 @@
   - entity_id: person.suzanne
     from: Suzanne Etten-Leur Fiets Meetpunt
     platform: state
-    to: Afwezig
   condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets
-        is. Ze moet nog 8 kilometer fietsen, dus over 25 minuten is ze er
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet
-    data_template:
-      message: Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets
-        is. Ze moet nog 8 kilometer fietsen, dus over 25 minuten is ze er
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_fiets2: 1
+      person: Suzanne
 - id: 1570fsdfsdfsf541
   alias: Notification Send notification when Martijn is coming home from work
   description: ''
@@ -3606,24 +4375,19 @@
   - entity_id: person.martijn
     from: Werk Martijn
     platform: state
-    to: Afwezig
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
-      < "18:15"}}'
+      < "18:45"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vertrokken van zijn werk. Hij moet nog {{states.sensor.martijn_naar_huis.attributes.distance}}
-        kilometer rijden, dus als hij met de auto is dan is hij over {{states.sensor.martijn_naar_huis.state
-        }} minuten thuis
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet_suzanne
-    data_template:
-      message: Martijn is vertrokken van zijn werk. Hij moet nog {{states.sensor.martijn_naar_huis.attributes.distance}}
-        rijden, dus als hij met de auto is dan is hij over {{states.sensor.martijn_naar_huis.state
-        }} minuten thuis
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken: 1
+      person: Martijn
 - id: 157568587sf541
   alias: Notification Send notification when Martijn is coming home from work Auto
     2
@@ -3632,19 +4396,19 @@
   - entity_id: person.martijn
     from: Martijn Etten-Leur Auto Meetpunt
     platform: state
-    to: Afwezig
   condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:45"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de
-        fiets is. Hij moet nog 13 kilometer rijden, dus over 16 minuten is hij thuis
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet_suzanne
-    data_template:
-      message: Martijn is vertrokken van zijn werk. Hij moet nog 13 rijden, dus als
-        hij met de auto is dan is hij over 16 minuten thuis
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_auto: 1
+      person: Martijn
 - id: 157079ffsdfsdsfs3541
   alias: Notification Send notification when Martijn is coming home from work Fiets
   description: ''
@@ -3652,7 +4416,6 @@
   - entity_id: person.martijn
     from: Werk Martijn
     platform: state
-    to: Afwezig
   condition:
   - condition: template
     value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
@@ -3662,20 +4425,14 @@
       | int > 1 and states.device_tracker.life360_martijn_van_der_schoot.attributes.speed
       | int < 30 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de
-        fiets is. Hij moet nog {{states.sensor.martijn_naar_huis_fiets.attributes.distance}}
-        fietsen, dus over {{states.sensor.sensor.martijn_naar_huis_fiets.state }}
-        minuten is hij thuis
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet_suzanne
-    data_template:
-      message: Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de
-        fiets is. Hij moet nog {{states.sensor.martijn_naar_huis_fiets.attributes.distance}}
-        fietsen, dus over {{states.sensor.sensor.martijn_naar_huis_fiets.state }}
-        minuten is hij er
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_fiets: 1
+      person: Martijn
 - id: 157079ff423423541
   alias: Notification Send notification when Martijn is coming home from work Fiets
     2
@@ -3684,19 +4441,19 @@
   - entity_id: person.martijn
     from: Martijn Hoeven Fiets Meetpunt
     platform: state
-    to: Afwezig
   condition:
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "18:15"}}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de
-        fiets is. Hij moet nog 5,5 km fietsen, dus over 16 minuten is hij er
-      language: nl
-    entity_id: group.google_home_group
-  - service: notify.pushbullet_suzanne
-    data_template:
-      message: Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de
-        fiets is. Hij moet nog 5,5 km fietsen, dus over 16 minuten is hij er
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vertrokken_fiets2: 1
+      person: Martijn
 - id: 157079fsd3242f541
   alias: Notification Send notification when Suzanne is near ALDI
   description: ''
@@ -3708,11 +4465,15 @@
   - condition: template
     value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vlakbij de ALDI Zevenbergen, moet ze nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Suzanne
+      shop: ALDI Zevenbergen
   - service: notify.pushbullet
     data_template:
       message: Suzanne is vlakbij de ALDI Zevenbergen, moet ze nog iets meenemen.
@@ -3728,11 +4489,15 @@
   - condition: template
     value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vlakbij de ALDI Zevenbergen, moet hij nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Martijn
+      shop: ALDI Zevenbergen
   - service: notify.pushbullet_suzanne
     data_template:
       message: Martijn is vlakbij de ALDI Zevenbergen, moet hij nog iets meenemen.
@@ -3748,11 +4513,15 @@
   - condition: template
     value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vlakbij de Albert Heijn Zevenbergen, moet ze nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Suzanne
+      shop: Albert Heijn Zevenbergen
   - service: notify.pushbullet
     data_template:
       message: Suzanne is vlakbij de Albert Heijn Zevenbergen, moet ze nog iets meenemen.
@@ -3768,11 +4537,15 @@
   - condition: template
     value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vlakbij de Albert Heijn Zevenbergen, moet hij nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Martijn
+      shop: Albert Heijn Zevenbergen
   - service: notify.pushbullet_suzanne
     data_template:
       message: Martijn is vlakbij de Albert Heijn Zevenbergen, moet hij nog iets meenemen.
@@ -3788,11 +4561,15 @@
   - condition: template
     value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vlakbij de Action Zevenbergen, moet ze nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Suzanne
+      shop: Action Zevenbergen
   - service: notify.pushbullet
     data_template:
       message: Suzanne is vlakbij de Action Zevenbergen, moet ze nog iets meenemen.
@@ -3809,11 +4586,15 @@
   - condition: template
     value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vlakbij de Action Zevenbergen, moet hij nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Martijn
+      shop: Action Zevenbergen
   - service: notify.pushbullet_suzanne
     data_template:
       message: Martijn is vlakbij de Action Zevenbergen, moet hij nog iets meenemen.
@@ -3829,11 +4610,15 @@
   - condition: template
     value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vlakbij de Hornbach Breda, moet ze nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Suzanne
+      shop: Hornbach Breda
   - service: notify.pushbullet
     data_template:
       message: Suzanne is vlakbij de Hornbach Breda, moet ze nog iets meenemen. Dit
@@ -3849,11 +4634,15 @@
   - condition: template
     value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vlakbij de Hornbach Breda, moet hij nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Martijn
+      shop: Hornbach Breda
   - service: notify.pushbullet_suzanne
     data_template:
       message: Martijn is vlakbij de Hornbach Breda, moet hij nog iets meenemen. Dit
@@ -3869,11 +4658,15 @@
   - condition: template
     value_template: '{{states.sensor.suzanne_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Suzanne is vlakbij de IKEA Breda, moet ze nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Suzanne
+      shop: IKEA Breda
   - service: notify.pushbullet
     data_template:
       message: Suzanne is vlakbij de IKEA Breda, moet ze nog iets meenemen. Dit is
@@ -3889,332 +4682,96 @@
   - condition: template
     value_template: '{{states.sensor.martijn_gps_accuracy.state | int < 100 }}'
   action:
-  - service: tts.google_translate_say
-    data_template:
-      message: Martijn is vlakbij de IKEA Breda, moet hij nog iets meenemen
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_persoon_vlakbij_winkel: 1
+      person: Martijn
+      shop: IKEA Breda
   - service: notify.pushbullet_suzanne
     data_template:
       message: Martijn is vlakbij de IKEA Breda, moet hij nog iets meenemen. Dit is
         het lijstje {{states.sensor.shopping_list_ikea_fcb8bfc6a3.attributes.notes[0].unchecked}}
 - id: '156453645645674'
-  alias: Notification Humidity woonkamer 1
+  alias: Notification Humidity woonkamer
   trigger:
   - platform: template
     value_template: '{{states.sensor.hum_keuken.state | int > 70}}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_keuken.state
-      | int}}'
-  - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
-      title: Hoge vochtigheid woonkamer
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
-      title: Hoge vochtigheid woonkamer
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet. Misschien de afzuigkap aanzetten?
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: '1564536456424274'
-  alias: Notification Humidity woonkamer 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.hum_keuken.state | int > 70}}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_keuken.state
-      | int}}'
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
-      title: Hoge vochtigheid woonkamer
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
-      title: Hoge vochtigheid woonkamer
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de woonkamer begint erg hoog te worden, namelijk
-        {{states.sensor.hum_keuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen en misschien de afzuigkap aanzetten?
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_hum_check: 1
+      kamer: woonkamer
 - id: 1564536gdfgd74
-  alias: Notification Humidity kamer lars 1
+  alias: Notification Humidity kamer lars
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_lars.state | int > 70}}'
+    value_template: '{{states.sensor.hum_kamer_lars.state | int > 73}}'
   condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_kamer_lars.state
-      | int}}'
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-      title: Hoge vochtigheid kamer van Lars
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-      title: Hoge vochtigheid kamer van Lars
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 156453645gdfgdf4
-  alias: Notification Humidity kamer lars 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.hum_kamer_lars.state | int > 70}}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_kamer_lars.state
-      | int}}'
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-      title: Hoge vochtigheid kamer van Lars
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-      title: Hoge vochtigheid kamer van Lars
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de kamer van Lars begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_lars.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_hum_check: 1
+      kamer: kamer_lars
 - id: 156453fgdgd74
-  alias: Notification Humidity kamer nienke 1
+  alias: Notification Humidity kamer nienke
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 70}}'
+    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 73}}'
   condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_kamer_nienke.state
-      | int}}'
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-      title: Hoge vochtigheid kamer van Nienke
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-      title: Hoge vochtigheid kamer van Nienke
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten helpt helaas niet
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 1564gdfgdfgd
-  alias: Notification Humidity kamer nienke 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.hum_kamer_nienke.state | int > 70}}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_kamer_nienke.state
-      | int}}'
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-      title: Hoge vochtigheid kamer van Nienke
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-      title: Hoge vochtigheid kamer van Nienke
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de kamer van Nienke begint erg hoog te worden, namelijk
-        {{states.sensor.hum_kamer_nienke.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        raampje open zetten kan helpen
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_hum_check: 1
+      kamer: kamer_nienke
 - id: '15634543463474'
-  alias: Notification Humidity bijkeuken 1
+  alias: Notification Humidity bijkeuken
   trigger:
   - platform: template
     value_template: '{{states.sensor.hum_bijkeuken.state | int > 95}}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int > states.sensor.hum_bijkeuken.state
-      | int}}'
-  - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten helpt helaas niet
-      title: Hoge vochtigheid bijkeuken
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten helpt helaas niet
-      title: Hoge vochtigheid bijkeuken
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        hoger, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten helpt helaas niet
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 1564g634564356gd
-  alias: Notification Humidity bijkeuken 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.hum_bijkeuken.state | int > 95}}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.br_humidity.state | int < states.sensor.hum_bijkeuken.state
-      | int}}'
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten kan helpen
-      title: Hoge vochtigheid bijkeuken
-    service: notify.pushbullet
-  - data_template:
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten kan helpen
-      title: Hoge vochtigheid bijkeuken
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De vochtigheid in de bijkeuken begint erg hoog te worden, namelijk
-        {{states.sensor.hum_bijkeuken.state | int}} procent. Buiten is de vochtigheid
-        lager, namelijk {{states.sensor.br_humidity.state | int}} procent dus een
-        deur open zetten kan helpen
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_hum_check: 1
+      kamer: bijkeuken
 - id: 156442gdfgdf34274'
   alias: Notification Hoog Gasverbruik
   trigger:
   - platform: template
-    value_template: '{{states.sensor.toon_gas_used_last_hour.state | float > 1.0}}'
+    value_template: '{{states.sensor.toon_gas_used_last_hour.state | float > 1.4}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
@@ -4224,21 +4781,17 @@
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float *1000 ) |int }} liter
-      title: Hoog Gasverbruik
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float *1000 ) |int }} liter
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_verbruik_gas: 1
   - service: notify.woonkamerandroidtv
     data:
-      message: Er is het afgelopen uur veel gas verbruik geregistreerd, namelijk {{(states.sensor.toon_gas_used_last_hour.state
-        | float *1000 ) |int }} liter
+      message: Er is het afgelopen uur veel gas verbruik gemeten, namelijk {{(states.sensor.toon_gas_used_last_hour.state
+        | float *1000 ) |int }} kubieke meter
       title: Hoog Gasverbruik
       data:
         fontsize: large
@@ -4249,7 +4802,7 @@
   alias: Notification Hoog Electriciteitsverbruik
   trigger:
   - platform: template
-    value_template: '{{states.sensor.toon_p1_power_use.state | int > 5000}}'
+    value_template: '{{states.sensor.toon_p1_power_use.state | int > 5750}}'
   condition:
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
@@ -4258,21 +4811,23 @@
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_hoog_electriciteitsverbruik.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 5 | int}}
+
+      '
   action:
-  - data_template:
-      message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
-        {{states.sensor.toon_p1_power_use.state | int}} W
-      title: Hoog Electriciteitsverbruik
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
-        {{states.sensor.toon_p1_power_use.state | int}} watt
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_verbruik_elec: 1
   - service: notify.woonkamerandroidtv
     data:
-      message: Er wordt op het moment veel stroom verbruik geregistreerd, namelijk
+      message: Er wordt op het moment veel stroom verbruik gemeten, namelijk
         {{states.sensor.toon_p1_power_use.state | int}} W
       title: Hoog Electriciteitsverbruik
       data:
@@ -4287,71 +4842,17 @@
     value_template: '{{states.sensor.toon_room_temp.state | float > 25 }}'
   condition:
   - condition: template
-    value_template: '{{states.sensor.br_temperature.state | float > states.sensor.toon_room_temp.state
-      | float}}'
-  - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} graden. Buiten is de temperatuur hoger, namelijk {{states.sensor.br_temperature.state
-        | int}} graden dus een deur of raamp open zetten helpt helaas niet
-      title: Hoge temperatuur woonkamer
-    service: notify.pushbullet
-  - data_template:
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} graden. Buiten is de temperatuur hoger, namelijk {{states.sensor.br_temperature.state
-        | int}} graden dus een deur of raamp open zetten helpt helaas niet
-      title: Hoge temperatuur woonkamer
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} procent. Buiten is de temperatuur hoger, namelijk {{states.sensor.br_temperature.state
-        | int}} procent dus een raampje open zetten helpt helaas niet
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 156442hfdgfdg273
-  alias: Notification Hoge Temperatuur woonkamer 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.toon_room_temp.state | float > 25 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.br_temperature.state | float < states.sensor.toon_room_temp.state
-      | float}}'
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} graden. Buiten is de temperatuur lager, namelijk {{states.sensor.br_temperature.state
-        | int}} graden dus een deur of raamp open zetten kan helpen
-      title: Hoge temperatuur woonkamer
-    service: notify.pushbullet
-  - data_template:
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} graden. Buiten is de temperatuur lager, namelijk {{states.sensor.br_temperature.state
-        | int}} graden dus een deur of raamp open zetten kan helpen
-      title: Hoge temperatuur woonkamer
-    service: notify.pushbullet_suzanne
-  - data_template:
-      language: nl
-      message: De temperatuur in de woonkamer begint hoog te worden, namelijk {{states.sensor.toon_room_temp.state
-        | int}} procent. Buiten is de temperatuur lager, namelijk {{states.sensor.br_temperature.state
-        | int}} procent dus een raampje open zetten kan helpen
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_temp_check: 1
+      kamer: woonkamer
 - id: 156442hfdgfdg275a
   alias: Notification Lage Temperatuur garage
   trigger:
@@ -4361,22 +4862,15 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur in de garage begint laag te worden, namelijk {{states.sensor.temp_garage.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-      title: Lage temperatuur garage
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur in de garage begint laag te worden, namelijk {{states.sensor.temp_garage.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_temp_check: 1
+      kamer: garage
 - id: 156442h42342fdg275a
   alias: Notification Lage Temperatuur bijkeuken
   trigger:
@@ -4386,22 +4880,15 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur in de bijkeuken begint laag te worden, namelijk {{states.sensor.temp_bijkeuken.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-      title: Lage temperatuur bijkeuken
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur in de bijkeuken begint laag te worden, namelijk {{states.sensor.temp_bijkeuken.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_temp_check: 1
+      kamer: bijkeuken
 - id: 156442h423gdfgd275a
   alias: Notification Lage Temperatuur buiten
   trigger:
@@ -4411,24 +4898,17 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur buiten begint laag te worden, namelijk {{states.sensor.br_temperature.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-      title: Lage temperatuur bijkeuken
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur buiten begint laag te worden, namelijk {{states.sensor.br_temperature.state
-        | float}} graden. Let op bevriezing van de waterleiding!
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_temp_check: 1
+      kamer: buiten
 - id: 156442h4sdfsdfs
-  alias: Notification Temperatuur stijging woonkamer 1
+  alias: Notification Temperatuur stijging woonkamer
   trigger:
   - platform: template
     value_template: '{{states.sensor.temp_keuken.state | float - states.sensor.keuken_temperature_stats.state
@@ -4437,54 +4917,17 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur stijgt snel in de woonkamer, namelijk het verschil in
-        temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_keuken.state
-        | int - states.sensor.keuken_temperature_stats.state | int }} graden.
-      title: Hoge temperatuur stijging woonkamer
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt snel in de woonkamer, namelijk het verschil in
-        temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_keuken.state
-        | int - states.sensor.keuken_temperature_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 156442h4s53453fs
-  alias: Notification Temperatuur stijging woonkamer 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.temp_keuken.state | float - states.sensor.keuken_temperature_stats.state
-      | float > 15 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
-  action:
-  - data_template:
-      message: De temperatuur stijgt extreem snel in de woonkamer, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_keuken.state
-        | int - states.sensor.keuken_temperature_stats.state | int }} graden.
-      title: Hoge temperatuur stijging woonkamer
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt extreem snel in de woonkamer, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_keuken.state
-        | int - states.sensor.keuken_temperature_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_temp_delta_check: 1
+      kamer: woonkamer
 - id: 156445hfdhfgfs
-  alias: Notification Temperatuur stijging kamer Lars 1
+  alias: Notification Temperatuur stijging kamer Lars
   trigger:
   - platform: template
     value_template: '{{states.sensor.temp_kamer_lars.state | float - states.sensor.temperatuur_kamer_lars_stats.state
@@ -4493,50 +4936,17 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur stijgt snel in kamer van Lars, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_lars.state
-        | int - states.sensor.temperatuur_kamer_lars_stats.state | int }} graden.
-      title: Hoge temperatuur stijging kamer Lars
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt snel in de kamer van Lars, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_lars.state
-        | int - states.sensor.temperatuur_kamer_lars_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 1564445345fs
-  alias: Notification Temperatuur stijging kamer Lars 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.temp_kamer_lars.state | float - states.sensor.temperatuur_kamer_lars_stats.state
-      | float > 15 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  action:
-  - data_template:
-      message: De temperatuur stijgt extreem snel in kamer van Lars, namelijk het
-        verschil in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_lars.state
-        | int - states.sensor.temperatuur_kamer_lars_stats.state | int }} graden.
-      title: Hoge temperatuur stijging kamer Lars
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt extreem snel in de kamer van Lars, namelijk het
-        verschil in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_lars.state
-        | int - states.sensor.temperatuur_kamer_lars_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_temp_delta_check: 1
+      kamer: kamer_lars
 - id: 156445hhhhhhhhhg
-  alias: Notification Temperatuur stijging kamer Nienke 1
+  alias: Notification Temperatuur stijging kamer Nienke
   trigger:
   - platform: template
     value_template: '{{states.sensor.temp_kamer_nienke.state | float - states.sensor.temperatuur_kamer_nienke_stats.state
@@ -4545,52 +4955,17 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur stijgt snel in de kamer van Nienke, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_nienke.state
-        | int - states.sensor.temperatuur_kamer_nienke_stats.state | int }} graden.
-      title: Hoge temperatuur stijging kamer Nienke
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt snel in de kamer van Nienke, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_kamer_nienke.state
-        | int - states.sensor.temperatuur_kamer_nienke_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 156445hhsdfsdfhhg
-  alias: Notification Temperatuur stijging kamer Nienke 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.temp_kamer_nienke.state | float - states.sensor.temperatuur_kamer_nienke_stats.state
-      | float > 15 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  action:
-  - data_template:
-      message: De temperatuur stijgt extreem snel in de kamer van Nienke, namelijk
-        het verschil in temperatuur met het gemiddelde van de afgelopen 24 uur is
-        {{states.sensor.temp_kamer_nienke.state | int - states.sensor.temperatuur_kamer_nienke_stats.state
-        | int }} graden.
-      title: Hoge temperatuur stijging kamer Nienke
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt extreem snel in de kamer van Nienke, namelijk
-        het verschil in temperatuur met het gemiddelde van de afgelopen 24 uur is
-        {{states.sensor.temp_kamer_nienke.state | int - states.sensor.temperatuur_kamer_nienke_stats.state
-        | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_temp_delta_check: 1
+      kamer: kamer_nienke
 - id: 1564fdgdffghhhg
-  alias: Notification Temperatuur stijging zolder 1
+  alias: Notification Temperatuur stijging zolder
   trigger:
   - platform: template
     value_template: '{{states.sensor.temp_zolder.state | float - states.sensor.temperatuur_zolder_stats.state
@@ -4599,50 +4974,17 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur stijgt snel op zolder, namelijk het verschil in temperatuur
-        met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_zolder.state
-        | int - states.sensor.temperatuur_zolder_stats.state | int }} graden.
-      title: Hoge temperatuur stijging zolder
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt snel op zolder, namelijk het verschil in temperatuur
-        met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_zolder.state
-        | int - states.sensor.temperatuur_zolder_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 1fsdfdsfsfsgd
-  alias: Notification Temperatuur stijging zolder 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.temp_zolder.state | float - states.sensor.temperatuur_zolder_stats.state
-      | float > 15 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  action:
-  - data_template:
-      message: De temperatuur stijgt extreem snel op zolder, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_zolder.state
-        | int - states.sensor.temperatuur_zolder_stats.state | int }} graden.
-      title: Hoge temperatuur stijging zolder
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt extreem snel op zolder, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.temp_zolder.state
-        | int - states.sensor.temperatuur_zolder_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_temp_delta_check: 1
+      kamer: zolder
 - id: 1564fdgdffghhhg
-  alias: Notification Temperatuur stijging badkamer 1
+  alias: Notification Temperatuur stijging badkamer
   trigger:
   - platform: template
     value_template: '{{states.sensor.hum_temp_bad_temperature.state | float - states.sensor.temperatuur_bad_stats.state
@@ -4651,48 +4993,15 @@
   - condition: template
     value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
       | int}} '
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Guests"}}'
-  - condition: template
-    value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - data_template:
-      message: De temperatuur stijgt snel in de badkamer, namelijk het verschil in
-        temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.hum_temp_bad_temperature.state
-        | int - states.sensor.temperatuur_bad_stats.state | int }} graden.
-      title: Hoge temperatuur stijging badkamer
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt snel in de badkamer, namelijk het verschil in
-        temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.hum_temp_bad_temperature.state
-        | int - states.sensor.temperatuur_bad_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
-- id: 1564fdgdf312312g
-  alias: Notification Temperatuur stijging badkamer 2
-  trigger:
-  - platform: template
-    value_template: '{{states.sensor.hum_temp_bad_temperature.state | float - states.sensor.temperatuur_bad_stats.state
-      | float > 15 }}'
-  condition:
-  - condition: template
-    value_template: '{{states.sensor.time_online.state | int > states.input_number.condition_time_online_minutes_for_notifications.state
-      | int}} '
-  action:
-  - data_template:
-      message: De temperatuur stijgt extreem snel in de badkamer, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.hum_temp_bad_temperature.state
-        | int - states.sensor.temperatuur_bad_stats.state | int }} graden.
-      title: Hoge temperatuur stijging badkamer
-    service: notify.pushbullet
-  - data_template:
-      language: nl
-      message: De temperatuur stijgt extreem snel in de badkamer, namelijk het verschil
-        in temperatuur met het gemiddelde van de afgelopen 24 uur is {{states.sensor.hum_temp_bad_temperature.state
-        | int - states.sensor.temperatuur_bad_stats.state | int }} graden.
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_temp_delta_check: 1
+      kamer: badkamer
 - id: sonoff1
   alias: Miscellaneous Power state on HA start-up
   trigger:
@@ -4833,9 +5142,8 @@
   - platform: template
     value_template: '{{ states.sensor.time.state == states.input_datetime.alarm1.state[0:5]}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" }}'
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
@@ -4856,50 +5164,61 @@
     - condition: template
       value_template: '{{ (now().strftime("%a") == "Sun") and (states.input_boolean.alarm1_su.state=="on")}}'
   action:
-  - data_template:
-      language: nl
-      message: Over twee minuten is het zo ver, want dan is het {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_text_notifications
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: voor
+      alarm_nr: 1
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Over 1 minuut is het zo ver, want dan is het {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: voor
+      alarm_nr: 1
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Het is nu zo ver, het is {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 0
+      voor_of_na: voor
+      alarm_nr: 1
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 1 minuut geleden was het al {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: na
+      alarm_nr: 1
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 2 minuten geleden was het al {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: na
+      alarm_nr: 1
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 3 minuten geleden was het al {{states.input_text.alarm1_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 3
+      voor_of_na: na
+      alarm_nr: 1
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_text_notifications
 - id: '156455345345334'
   alias: Notification Alarm 2 Google Home
   trigger:
   - platform: template
     value_template: '{{ states.sensor.time.state == states.input_datetime.alarm2.state[0:5]}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" }}'
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
@@ -4920,50 +5239,61 @@
     - condition: template
       value_template: '{{ (now().strftime("%a") == "Sun") and (states.input_boolean.alarm2_su.state=="on")}}'
   action:
-  - data_template:
-      language: nl
-      message: Over twee minuten is het zo ver, want dan is het {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_text_notifications
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: voor
+      alarm_nr: 2
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Over 1 minuut is het zo ver, want dan is het {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: voor
+      alarm_nr: 2
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Het is nu zo ver, het is {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 0
+      voor_of_na: voor
+      alarm_nr: 2
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 1 minuut geleden was het al {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: na
+      alarm_nr: 2
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 2 minuten geleden was het al {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: na
+      alarm_nr: 2
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 3 minuten geleden was het al {{states.input_text.alarm2_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 3
+      voor_of_na: na
+      alarm_nr: 2
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_text_notifications
 - id: '2564555345344'
   alias: Notification Alarm 3 Google Home
   trigger:
   - platform: template
     value_template: '{{ states.sensor.time.state == states.input_datetime.alarm3.state[0:5]}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" }}'
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
@@ -4984,50 +5314,61 @@
     - condition: template
       value_template: '{{ (now().strftime("%a") == "Sun") and (states.input_boolean.alarm3_su.state=="on")}}'
   action:
-  - data_template:
-      language: nl
-      message: Over twee minuten is het zo ver, want dan is het {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_text_notifications
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: voor
+      alarm_nr: 3
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Over 1 minuut is het zo ver, want dan is het {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: voor
+      alarm_nr: 3
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Het is nu zo ver, het is {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 0
+      voor_of_na: voor
+      alarm_nr: 3
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 1 minuut geleden was het al {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: na
+      alarm_nr: 3
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 2 minuten geleden was het al {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: na
+      alarm_nr: 3
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 3 minuten geleden was het al {{states.input_text.alarm3_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 3
+      voor_of_na: na
+      alarm_nr: 3
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_text_notifications
 - id: '456455345345334'
   alias: Notification Alarm 4 Google Home
   trigger:
   - platform: template
     value_template: '{{ states.sensor.time.state == states.input_datetime.alarm4.state[0:5]}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" }}'
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
@@ -5048,50 +5389,61 @@
     - condition: template
       value_template: '{{ (now().strftime("%a") == "Sun") and (states.input_boolean.alarm4_su.state=="on")}}'
   action:
-  - data_template:
-      language: nl
-      message: Over twee minuten is het zo ver, want dan is het {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_text_notifications
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: voor
+      alarm_nr: 4
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Over 1 minuut is het zo ver, want dan is het {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: voor
+      alarm_nr: 4
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Het is nu zo ver, het is {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 0
+      voor_of_na: voor
+      alarm_nr: 4
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 1 minuut geleden was het al {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: na
+      alarm_nr: 4
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 2 minuten geleden was het al {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: na
+      alarm_nr: 4
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 3 minuten geleden was het al {{states.input_text.alarm4_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 3
+      voor_of_na: na
+      alarm_nr: 4
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_text_notifications
 - id: '556455353453453'
   alias: Notification Alarm 5 Google Home
   trigger:
   - platform: template
     value_template: '{{ states.sensor.time.state == states.input_datetime.alarm5.state[0:5]}}'
   condition:
-  - condition: state
-    entity_id: group.all_devices
-    state: home
+  - condition: template
+    value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" }}'
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
@@ -5112,41 +5464,53 @@
     - condition: template
       value_template: '{{ (now().strftime("%a") == "Sun") and (states.input_boolean.alarm5_su.state=="on")}}'
   action:
-  - data_template:
-      language: nl
-      message: Over twee minuten is het zo ver, want dan is het {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.janet_text_notifications
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: voor
+      alarm_nr: 5
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Over 1 minuut is het zo ver, want dan is het {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: voor
+      alarm_nr: 5
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: Het is nu zo ver, het is {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 0
+      voor_of_na: voor
+      alarm_nr: 5
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 1 minuut geleden was het al {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 1
+      voor_of_na: na
+      alarm_nr: 5
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 2 minuten geleden was het al {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 2
+      voor_of_na: na
+      alarm_nr: 5
   - delay: 00:01:00
-  - data_template:
-      language: nl
-      message: 3 minuten geleden was het al {{states.input_text.alarm5_text.state}}
-    entity_id: group.google_home_group
-    service: tts.google_translate_say
+  - service: script.janet_speech_engine
+    data:
+      call_alarm_google_home_sentence: 1
+      minutes: 3
+      voor_of_na: na
+      alarm_nr: 5
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.janet_text_notifications
 - id: '1572527347324'
   alias: Miscellaneous eco modus on
   description: ''
@@ -5231,12 +5595,13 @@
         [5:7] | int + 60 | int * 60) | timestamp_custom("%H:%M:%S", false) }}'
       entity_id: timer.fan_on_timer
     service: timer.start
-  - service: tts.google_translate_say
-    data_template:
-      message: Ik heb de verwarming in de badkamer en de ventilatie voor je aangezet.
-        Veel plezier in bad
-      language: nl
-    entity_id: group.google_home_group
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - service: script.janet_speech_engine
+    data:
+      call_bathing_sentence: 1
 - id: '15769768768324'
   alias: Miscellaneous zacht licht on
   description: ''
@@ -5695,7 +6060,7 @@
   - condition: template
     value_template: '{% set last_triggered = states.automation.people_greeting_martijn.attributes.last_triggered
       %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
-      | int /60) > 120 | int}}
+      | int /60) > 720 | int}}
 
       '
   - condition: template
@@ -5705,9 +6070,14 @@
 
       '
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_greeting: 1
+      call_briefing: 1
       call_responsibilities: 1
       call_no_announcement: 1
       call_garage_check: 1
@@ -5730,13 +6100,18 @@
   - condition: template
     value_template: '{% set last_triggered = states.automation.people_greeting_suzanne.attributes.last_triggered
       %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
-      | int /60) > 120 | int}}
+      | int /60) > 720 | int}}
 
       '
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_greeting: 1
+      call_briefing: 1
       call_responsibilities: 1
       call_no_announcement: 1
       call_garage_check: 1
@@ -5750,6 +6125,10 @@
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_greeting: 1
@@ -5764,6 +6143,10 @@
   - event_type: homeassistant.restart
     platform: event
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_bye: 1
@@ -5775,6 +6158,10 @@
     platform: homeassistant
   action:
   - service: automation.reload
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - service: script.janet_speech_engine
     data:
       call_greeting: 1
@@ -5791,6 +6178,10 @@
     value_template: '{{ states.sensor.time.state > "06:45" and states.sensor.time.state
       < "09:15" }}'
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Suzanne
   - service: script.janet_speech_engine
     data:
       call_greeting: 1
@@ -5811,6 +6202,10 @@
     value_template: '{{ states.sensor.time.state > "06:45" and states.sensor.time.state
       < "09:15" }}'
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - data:
       call_greeting: 1
       call_work_arrive: 1
@@ -5830,7 +6225,14 @@
   - condition: template
     value_template: '{{ states.sensor.time.state > "13:00" and states.sensor.time.state
       < "19:30" }}'
+  - condition: state
+    entity_id: input_boolean.workday_suzanne
+    state: 'on'
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
   - data:
       call_greeting: 1
       call_work_left: 1
@@ -5847,9 +6249,402 @@
   - condition: template
     value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
       < "19:30" }}'
+  - condition: state
+    entity_id: input_boolean.workday_martijn
+    state: 'on'
   action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Suzanne
   - data:
       call_greeting: 1
       call_work_left: 1
       person: Martijn
     service: script.janet_speech_engine
+- id: 1utyrurturt1
+  alias: Notification Send notification when Martijn comes back home from work
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.eetkamerdeur
+    platform: state
+    to: 'on'
+  condition:
+  - condition: template
+    value_template: '{{ (distance("person.martijn", "zone.home") *1000 | float)
+      < 500 }}'
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "19:30" }}'
+  - condition: template
+    value_template: '{{ (now() - states.person.martijn.last_changed).total_seconds() < 60*25 }}'
+  - condition: state
+    entity_id: input_boolean.workday_martijn
+    state: 'on'
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_martijn_comes_back_home_from_work.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 30
+      | int}}
+
+      '
+  action:
+  - delay: 00:00:30
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Suzanne
+  - data:
+      call_briefing: 1
+      person: Martijn
+    service: script.janet_speech_engine
+- id: 1utyrurturt1
+  alias: Notification Send notification when Suzanne comes back home from work
+  description: ''
+  trigger:
+  - entity_id: binary_sensor.eetkamerdeur
+    platform: state
+    to: 'on'
+  condition:
+  - condition: template
+    value_template: '{{ (distance("person.suzanne", "zone.home") *1000 | float)
+      < 500 }}'
+  - condition: template
+    value_template: '{{ states.sensor.time.state > "15:30" and states.sensor.time.state
+      < "19:30" }}'
+  - condition: template
+    value_template: '{{ (now() - states.person.suzanne.last_changed).total_seconds() < 60*20 }}'
+  - condition: state
+    entity_id: input_boolean.workday_suzanne
+    state: 'on'
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_suzanne_comes_back_home_from_work.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 30
+      | int}}
+
+      '
+  action:
+  - delay: 00:00:30
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - data:
+      call_briefing: 1
+      person: Suzanne
+    service: script.janet_speech_engine
+- id: '157gddgdfg24'
+  alias: Miscellaneous reset work and schooldays
+  description: ''
+  trigger:
+  - at: '00:05'
+    platform: time
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.workday_martijn
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.workday_suzanne
+  - service: input_boolean.turn_off
+    data:
+      entity_id: input_boolean.schoolday_kids
+- id: 1utygdfgdfgt1
+  alias: Miscellaneous set workday Martijn
+  description: ''
+  trigger:
+  - entity_id: person.martijn
+    platform: state
+    to: Werk Martijn
+    for: 00:05:00
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.workday_martijn
+- id: 1utfsdfsdffgt1
+  alias: Miscellaneous set workday Suzanne
+  description: ''
+  trigger:
+  - entity_id: person.suzanne
+    platform: state
+    to: Werk Suzanne ETL
+    for: 00:05:00
+  - entity_id: person.suzanne
+    platform: state
+    to: Werk Suzanne ZVB
+    for: 00:05:00
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.workday_suzanne
+- id: 1utyfsdfsd1
+  alias: Miscellaneous set schoolday kids
+  description: ''
+  trigger:
+  - entity_id: person.martijn
+    platform: state
+    to: School
+    for: 00:00:30
+  - entity_id: person.suzanne
+    platform: state
+    to: School
+    for: 00:00:30
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.schoolday_kids
+- id: 15hfhfghfs2
+  alias: Motion Lights Off Licht Spiegel Hal 
+  trigger:
+  - entity_id: light.lamp_spiegel
+    for: 00:03:00
+    platform: state
+    to: 'on'
+  condition: []
+  action:
+  - data:
+      entity_id:
+      - light.lamp_spiegel
+    service: light.turn_off
+- id: knop bed triple click
+  alias: Switch woonkamer en eetkamerdeur sfeer aan bij drie keer klikken
+  trigger:
+  - platform: event
+    event_type: deconz_event
+    event_data:
+      id: smart_switch_eetkamer
+      event: 1006
+  - platform: event
+    event_type: deconz_event
+    event_data:
+      id: smart_switch_woonkamer
+      event: 1006
+  condition:
+  action:
+  - data:
+      brightness: 2
+      color_temp: 500
+      entity_id:
+      - light.aanrecht
+      - light.bar
+      - light.boventv
+      - light.lampen_eetkamertafel
+      - light.sonoff_schemerlamp_n_bank
+      - light.sonoff_lampje_tv
+      - light.sonoff_lamp_ster
+      - light.grote_staande_lamp_bank
+      - light.sonoff_sfeerlicht_speelkamer
+    service: light.turn_on
+  - data:
+      entity_id:
+      - light.sonoff_spoelbak_keuken
+      - light.lamp_spiegel
+      - light.lampen_speelkamer
+      - light.sonoff_schemerlamp_deur
+    service: light.turn_off
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Ik heb de lampen in de woonkamer sfeervol voor je aangezet
+- id: 523453453h
+  alias: People Greeting Gellius
+  trigger:
+  - platform: state
+    entity_id: device_tracker.ipadvangellius
+    to: home
+    for:
+      minutes: 3
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_gellius.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 720 | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_guests_greeting_sentence: 1
+      person: Gellius
+- id: 5253453342h
+  alias: People Greeting Evelien
+  trigger:
+  - platform: state
+    entity_id: device_tracker.android_d72bef8dc8bf8bdf
+    to: home
+    for:
+      minutes: 3
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.people_greeting_evelien.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 720 | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_guests_greeting_sentence: 1
+      person: Evelien
+- id: 55345342h
+  alias: Miscellaneous Guest mode on with arrival Gellius en Evelien
+  trigger:
+  - platform: state
+    entity_id: device_tracker.android_d72bef8dc8bf8bdf
+    to: home
+    for:
+      minutes: 1
+  - platform: state
+    entity_id: device_tracker.ipadvangellius
+    to: home
+    for:
+      minutes: 1
+  condition:
+  action:
+  - service: input_boolean.turn_on
+    data:
+      entity_id: input_boolean.guest
+- id: gdfgsdfgsdfgsdg
+  alias: Notification Send notification when WAQI becomes too large pm_10
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.waqi_pm_10.state | int > 60 }}'
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_waqi_becomes_too_large_pm_10.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120
+      | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - data:
+      call_air_quality_check: 1
+      type: pm_10
+    service: script.janet_speech_engine
+- id: gdfggdgdfsdg
+  alias: Notification Send notification when WAQI becomes too large pm_2_5
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.waqi_pm_2_5_moerdijk.state | int > 90 }}'
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_waqi_becomes_too_large_pm_2_5.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120
+      | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - data:
+      call_air_quality_check: 1
+      type: pm_2_5
+    service: script.janet_speech_engine
+- id: gdfggdgdfsdg
+  alias: Notification Send notification when WAQI becomes too large ozone
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.waqi_ozone.state | int > 50 }}'
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_waqi_becomes_too_large_ozone.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120
+      | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - data:
+      call_air_quality_check: 1
+      type: ozone
+    service: script.janet_speech_engine
+- id: gdfgfsdfsg
+  alias: Notification Send notification when WAQI becomes too large nitrogen_dioxide
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.waqi_nitrogen_dioxide.state | int > 50 }}'
+  condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_when_waqi_becomes_too_large_nitrogen_dioxide.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 120
+      | int}}
+
+      '
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - data:
+      call_air_quality_check: 1
+      type: nitrogen_dioxide
+    service: script.janet_speech_engine
+- id: 'telegramremoveinline'
+  alias: 'Telegram callback to remove keyboard'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/removekeyboard'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: 'last'
+      chat_id: '{{ trigger.event.data.chat_id }}'
+      inline_keyboard: []
+- id: 'telegramrepeat_30m'
+  alias: 'Telegram callback to repeat message in 30 minutes'
+  trigger:
+    platform: event
+    event_type: telegram_callback
+    event_data:
+      data: '/30m'
+  action:
+  - service: telegram_bot.answer_callback_query
+    data_template:
+      callback_query_id: '{{ trigger.event.data.id }}'
+      message: 'OK, ik zal je over 30 minuten er aan herinneren'
+      show_alert: true
+  - service: telegram_bot.edit_replymarkup
+    data_template:
+      message_id: '{{ trigger.event.data.message.message_id }}'
+      chat_id: '{{ trigger.event.data.user_id }}'
+      inline_keyboard: []

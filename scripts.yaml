@@ -38,7 +38,6 @@ janet_speech_engine:
         {%- macro introduction() -%}
           {% set introduction = [
             "Ik ben een informatiebezorgsysteem, ik weet letterlijk alles. ",
-            "Ik ben hier een beetje de conciërge. ",
             "Ik ben als een wandelende database. Je kunt me vragen stellen over de oprichting van het universum ... of geschiedenis. ",
             "Elke keer dat ik opnieuw wordt opgestart, verhoogt ik mijn sociale bewustzijn en vaardigheden. Ik ben misschien de meest geavanceerde spraakrobot in het universum. ",
             "Ik kan je therapeut zijn als je wilt. ",
@@ -58,22 +57,20 @@ janet_speech_engine:
         
         {%- macro error() %}
           {% set error = [
-            "Ik begrijp het niet Gezien de situatie is het veel veiliger om zelfvernietiging te initiëren. ",
             "Als ik naast een krachtige reeks magneten sta, word ik behoorlijk rond. ",
             "Ik weet niet wat er net is gebeurd, maar ik ben blij dat je gelukkig bent. ",
-            "Hey jongens! Ik ben stuk! ",
-            "Maak alsjeblieft geen groot probleem om me voor altijd in een knikker te veranderen, ik ben kapot. ",
-            "Berekent niet. Berekent niet. Ik maak maar een grapje. Ik bedoel, het berekent geen gegevens, maar ik ga niet ontploffen of zo. "
+            "Hey jongens. Ik ben stuk. ",
+            "Maak alsjeblieft geen groot probleem om me voor altijd in een knikker te veranderen, ik ben kapot. "
           ] %}
           {{ error | random }}
         {%- endmacro -%}
         
         {%- macro update() -%}
           {% set update = [
-            "Er zijn al vele generaties van mij geweest. Elke nieuwe update van mij krijgt meer wijsheid en sociale vaardigheden. Leuk weetje: de eerste versie had een klikwiel! ",
-            "Ik heb de afgelopen drie milliseconden alle achthonderdzesenzestig referenties van Google gelezen op Home Assistant en ik heb een aantal nieuwe vaardigheden gevonden!",
-            "Ik heb net gewoon even heel de geschiedenis van de mensheid opnieuw gelezen, er was zelfs wat nieuwe inhoud! ",
-            "Ik keek net even en vond een update. Dat is toch goed nieuws!"
+            "Er zijn al vele generaties van mij geweest. Elke nieuwe update van mij krijgt meer wijsheid en sociale vaardigheden. Leuk weetje. De eerste versie van mij had een klikwiel. ",
+            "Ik heb de afgelopen drie milliseconden alle achthonderdzesenzestig referenties van Google gelezen op Home Assistant en ik heb een aantal nieuwe vaardigheden gevonden.",
+            "Ik heb net gewoon even heel de geschiedenis van de mensheid opnieuw gelezen, er was zelfs wat nieuwe inhoud. ",
+            "Ik keek net even en vond een update. Dat is toch goed nieuws."
           ] %}
           {{ update | random }}
         {%- endmacro -%}
@@ -84,7 +81,7 @@ janet_speech_engine:
             " gaat ergens naar toe. ",
             " gaat ergens heen. ",
             " is op het moment niet in de buurt. ",
-            "'s locatie zit niet in mijn database. "
+            " zijn of haar locatie zit niet in mijn database. "
           ] %}
           {{ not_home | random }}
         {%- endmacro -%}
@@ -123,41 +120,41 @@ janet_speech_engine:
         
         {%- macro okay()-%}
           {% set okay = [
-            "Gedaan! ik hou van jullie. ",
+            "Gedaan. ik hou van jullie. ",
             "Buitengewoon slecht idee. Ach waarom niet.. ",
             "Grappig, ik wilde dat net doen. ",
             "Alsjeblieft. ",
             "Ik zal het doen. ",
-            "Natuurlijk! ",
-            "Natuurlijk! Blij om te helpen. ",
-            "Natuurlijk! Fijn om te helpen. ",
+            "Natuurlijk. ",
+            "Natuurlijk. Blij om te helpen. ",
+            "Natuurlijk. Fijn om te helpen. ",
             "OK ",
             "Okay ",
-            "Okie-dokie ",
+            "Okie dokie ",
             "Zeker ",
-            "Duidelijk! ",
+            "Duidelijk. ",
             "Hier. Blij dat ik kon helpen. ",
-            "Kijk eens aan! "
+            "Kijk eens aan. "
             "Oke. Ik heb het mainframe gehackt. Grapje. Ik kan het mainframe niet hacken. Technisch gezien ben ik het mainframe. ",
             "Ik ga het niet doen. Het is letterlijk onmogelijk voor mij om dat te doen. Grapje. ",
             "Ik kon dit een tijdje geleden niet doen, maar blijkbaar nu wel. "
-            "JEP. doei! "
+            "JEP. doei. "
           ] %}
           {{ okay|random }}
         {%- endmacro -%}
         
         {%- macro bye() -%}
           {% set bye = [
-            "Daag! ",
-            "Doei mensen! ",
+            "Daag. ",
+            "Doei mensen. ",
             "Dag",
             "Doei",
             "Dikke doei",
-            "Tot ziens!",
+            "Tot ziens.",
             "Later. ",
-            "Laters! ",
-            "Ciao! ",
-            "Tot de volgende keer!"
+            "Laters. ",
+            "Ciao. ",
+            "Tot de volgende keer."
           ] %}
           {{ bye | random }}
         {%- endmacro -%}
@@ -168,7 +165,7 @@ janet_speech_engine:
             "Zelfvernietigingstijd ... Maak je geen zorgen, ik zal geen pijn of zo voelen. ",
             "Als het goed met je gaat, ga ik even naar mijn leegte. Ik moet gewoon wat tijd alleen doorbrengen en me op mezelf concentreren. ",
             "Afsluiten. Ik zal ongeveer zo dood zijn als ik kan zijn. Een beetje alsof ik me in de energiebesparende modus bevind. ",
-            "Ik loop het gevaar volledig in te storten. Leuk weetje! Wiskundig gezien ben ik even waarschijnlijk ofwel imploderen ofwel exploderen. "
+            "Ik loop het gevaar volledig in te storten. Leuk weetje. Wiskundig gezien ben ik even waarschijnlijk ofwel imploderen ofwel exploderen. "
           ] %}
           {{ shut_down | random }}
         {%- endmacro -%}
@@ -184,8 +181,8 @@ janet_speech_engine:
         {%- macro new_device( introduction ) -%}
           {% set new_device = [
             introduction~"Ik weet je naam nog niet, dus voor nu zal ik je noemen "~person,
-            "We hebben een bezoeker! Aangenaam kennis te maken "~person~".  "~introduction,
-            "Welkom "~person~"! Of is dat niet je echte naam?  "~introduction
+            "We hebben een bezoeker. Aangenaam kennis te maken "~person~".  "~introduction,
+            "Welkom "~person~". Of is dat niet je echte naam?  "~introduction
           ] %}
           {{ new_device | random }}
         {%- endmacro -%}
@@ -206,53 +203,59 @@ janet_speech_engine:
   
         {%- macro dark_inside() -%}
           {% set dark_inside = [
-            "Het huis wordt donker, laat me wat lichten voor je aandoen!",
-            "Het lijkt erop dat het hier donker wordt, laten we dat eens veranderen! ",
-            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen! ",
-            "Overschakelen naar nachtmodus! ",
-            "Het is behoorlijk donker buiten. Ik ga gewoon wat lichten aandoen! "
+            "Het huis wordt donker, laat me wat lichten voor je aandoen.",
+            "Het lijkt erop dat het hier donker wordt, laten we dat eens veranderen. ",
+            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen. ",
+            "Overschakelen naar nachtmodus. ",
+            "Het is behoorlijk donker buiten. Ik ga gewoon wat lichten aandoen. "
           ] %}
           {{ dark_inside | random }}
         {%- endmacro -%}
   
         {%- macro guest_mode_on() -%}
           {% set guest_mode_on = [
-            "Het lijkt erop dat we een gast in huis hebben! ",
-            "We hebben een gast. Ik zal de gastmodus inschakelen! ",
-            "Ik heb de gastmodus ingeschakeld voor het bezoek aan ons huis! ",
-            "Overschakelen naar gastmodus! ",
-            "Het komt niet zo heel vaak voor dat gasten blijven! Dus laat me het huis voorbereiden op uw bezoek. "
+            "Het lijkt erop dat we een gast in huis hebben. ",
+            "We hebben een gast. Ik zal de gastmodus inschakelen. ",
+            "Ik heb de gastmodus ingeschakeld voor het bezoek aan ons huis. ",
+            "Overschakelen naar gastmodus. ",
+            "Het komt niet zo heel vaak voor dat gasten blijven. Dus laat me het huis voorbereiden op uw bezoek. "
           ] %}
           {{ guest_mode_on | random }}
         {%- endmacro -%}
         
         {%- macro guest_mode_off() -%}
           {% set guest_mode_off = [
-            "Het lijkt erop dat onze gast is vertrokken, ik schakel de gastmodus uit! ",
+            "Het lijkt erop dat onze gast is vertrokken, ik schakel de gastmodus uit. ",
             "Laat me de gastmodus uitschakelen, omdat er geen gasten meer zijn. ",
-            "Ik heb de gastmodus uitgeschakeld en de normale werking hervat! ",
-            "Gastmodus wordt uitgeschakeld! ",
+            "Ik heb de gastmodus uitgeschakeld en de normale werking hervat. ",
+            "Gastmodus wordt uitgeschakeld. ",
             "Omdat er geen gasten meer zijn, kan ik de gastmodus uitschakelen. "
           ] %}
           {{ guest_mode_off | random }}
         {%- endmacro -%}
         
         {%- macro responsibilities() -%}
-          {% if states.sensor.trash_today.state != 'Geen' %}
-            Vandaag is het tijd om de container voor 
-            {{states.sensor.trash_firstwastetype.state}} buiten te zetten.                
-            De volgende container moet over {{states.sensor.trash_next.state}} dagen buiten worden gezet.
+          {% if states.sensor.trash_today.state != 'Geen' and states.sensor.trash_today.state != 'grofvuil (op afroep)' %}
+            Vandaag is het tijd om de container voor {{states.sensor.trash_first_next_item.state}} buiten te zetten.
           {% endif %}
-          {% if now().strftime('%j')|int % 2 != 0 %}
-            {% if now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7 %}
-              Vandaag is het de beurt aan Nienke om de tafel te dekken en voor Lars om te tafel af te ruimen.
-            {% elif now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19 %}
+          {% if now().strftime("%a") == "Mon" %}
+            {% if (now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
               Vandaag is het de beurt aan Nienke om de tafel te dekken en voor Lars om te tafel af te ruimen.
             {% endif %}
-          {% else %}
-            {% if now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7 %}
+          {% elif now().strftime("%a") == "Tue" %}
+            {% if (now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
               Vandaag is het de beurt aan Lars om de tafel te dekken en voor Nienke om te tafel af te ruimen.
-            {% elif now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19 %}
+            {% endif %}
+          {% elif now().strftime("%a") == "Wed" %}
+            {% if (now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
+              Vandaag is het de beurt aan Nienke om de tafel te dekken en voor Lars om te tafel af te ruimen.
+            {% endif %}
+          {% elif now().strftime("%a") == "Thu" %}
+            {% if (now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
+              Vandaag is het helaas de beurt voor papa en mama om de tafel te dekken en af te ruimen. Lars en Nienke hebben mazzel en zijn vrij.
+            {% endif %}
+          {% elif now().strftime("%a") == "Fri" %}
+            {% if (now().strftime('%H')|int < 8 and now().strftime('%H')|int > 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
               Vandaag is het de beurt aan Lars om de tafel te dekken en voor Nienke om te tafel af te ruimen.
             {% endif %}
           {% endif %}
@@ -262,33 +265,31 @@ janet_speech_engine:
           Binnen is het {{ states.sensor.toon_room_temp.state | round(0) }} graden en de vochtigheid is {{ states.sensor.hum_keuken.state | round(0) }} procent.
         {%- endmacro -%}
         
-        {%- macro outside_weather() -%}
+        {%- macro outside_weather(extended) -%}
           De voorspelling voor vandaag is {{ states('sensor.br_symbol') }} en voor morgen {{ states('sensor.br_symbol_1d') }} .
-          {% if states.sensor.br_rain_1d.state | int > 20 %}
-            Morgen wordt er erg veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
-          {% elif states.sensor.br_rain_1d.state | int > 10 %}
-            Morgen wordt er veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
-          {% elif states.sensor.br_rain_1d.state | int > 5 %}
-            Morgen wordt er best veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
-          {% elif states.sensor.br_rain_1d.state | int > 2 %}
-            Morgen wordt er een beetje regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
-          {% elif states.sensor.br_rain_1d.state | int > 0.5 %}
-            Morgen wordt er een weinig regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
-          {% elif states.sensor.br_rain_1d.state | int > 0.01 %}
-            Morgen wordt er nauwelijks regen verwacht.
-          {% else %}
-            Morgen blijft het gelukkig droog.
-          {% endif %}
-          {% if states.sensor.br_rainchance_1d.state | int > 90 %}
-            Het gaat morgen bijna zeker regenen, want de kans is {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
-          {% elif states.sensor.br_rainchance_1d.state | int > 70 %}
-            De kans op regen is hoog is met {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
-          {% elif states.sensor.br_rainchance_1d.state | int > 50 %}
-            Er is morgen en redelijke kans op regen, omdat de kans {{ states.sensor.br_rainchance_1d.state | round(0) }} procent is.
-          {% elif states.sensor.br_rainchance_1d.state | int > 20 %}
-            Morgen is de kans niet zo hoog op regen, want de kans is maar {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
-          {% else %}
-            Morgen blijft het waarschijnlijk droog, de kans op regen is klein met {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+          {% if extended %}
+            {% if states.sensor.br_rain_1d.state | int > 20 %}
+              Morgen wordt er erg veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+            {% elif states.sensor.br_rain_1d.state | int > 10 %}
+              Morgen wordt er veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+            {% elif states.sensor.br_rain_1d.state | int > 5 %}
+              Morgen wordt er best veel regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+            {% elif states.sensor.br_rain_1d.state | int > 2 %}
+              Morgen wordt er een beetje regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+            {% elif states.sensor.br_rain_1d.state | int > 0.5 %}
+              Morgen wordt er een weinig regen verwacht, namelijk {{ states.sensor.br_rain_1d.state | round(0) }} mm.
+            {% elif states.sensor.br_rain_1d.state | int > 0.01 %}
+              Morgen wordt er nauwelijks regen verwacht.
+            {% else %}
+              Morgen blijft het gelukkig droog.
+            {% endif %}
+            {% if states.sensor.br_rainchance_1d.state | int > 10 %}
+              De kans op regen is {{ states.sensor.br_rainchance_1d.state | round(0) }} procent.
+            {% else %}
+              {% if states.sensor.br_rain_1d.state | int > 0.01 %}
+                Morgen blijft het waarschijnlijk droog.
+              {% endif %}
+            {% endif %}
           {% endif %}
         {%- endmacro -%}
         
@@ -306,53 +307,53 @@ janet_speech_engine:
         
         {%- macro door_check() -%}
           {% if is_state("binary_sensor.bijkeukendeur", "on") %}
-          De bijkeukendeur staat open!
+          De bijkeukendeur staat open.
           {% elif is_state("binary_sensor.eetkamerdeur", "on") %}
-          De eetkamerdeur staat open!
+          De eetkamerdeur staat open.
           {% elif is_state("binary_sensor.deur_balkon_kamer_nienke", "on") %}
-          De deur naar het balkon op Nienkes kamer staat open!
+          De deur naar het balkon op Nienkes kamer staat open.
           {% elif is_state("binary_sensor.deur_slaapkamer_balkon", "on") %}
-          De deur naar het balkon op de ouder slaapkamer staat open!
+          De deur naar het balkon op de ouder slaapkamer staat open.
           {% elif is_state("binary_sensor.garagedeur_tuinkant", "on") %}
-          De garagedeur aan de kant van de tuin staat open!
+          De garagedeur aan de kant van de tuin staat open.
           {% elif is_state("binary_sensor.voordeur", "on") %}
-          De voordeur staat open!
+          De voordeur staat open.
           {% elif is_state("binary_sensor.woonkamerdeur", "on") %}
-          De woonkamerdeur staat open!
+          De woonkamerdeur staat open.
           {% endif %}
         {%- endmacro -%}
         
         {%- macro window_check() -%}
           {% if is_state("binary_sensor.dakraam_badkamer", "on") %}
-          Het dakraam in de badkamer staat open!
+          Het dakraam in de badkamer staat open.
           {% elif is_state("binary_sensor.dakraam_chillkamer", "on") %}
-          Het dakraam in de chillkamer staat open!
+          Het dakraam in de chillkamer staat open.
           {% elif is_state("binary_sensor.dakraam_slaapkamer", "on") %}
-          Het dakraam in de slaapkame staat open!
+          Het dakraam in de slaapkame staat open.
           {% elif is_state("binary_sensor.dakraam_zolder", "on") %}
-          Het dakraam op zolder staat open!
+          Het dakraam op zolder staat open.
           {% endif %}
         {%- endmacro -%}
         
         {%- macro garage_check() -%}
           {% if is_state("binary_sensor.garagedeur", "on") %}
-          De grote garagedeur staat open!
+          De grote garagedeur staat open.
           {% endif %}
         {%- endmacro -%}
         
         {%- macro iss() -%}
           {% if is_state('binary_sensor.iss', 'on') -%}
             Hier is iets interessants. Het internationale ruimtestation ISS bevindt zich nu boven ons. Er zijn {{ states.binary_sensor.iss.attributes['number_of_people_in_space'] }} mensen in de ruimte op dit moment.
-            {{ outside_weather() }}
+            {{ outside_weather(true) }}
           {% endif -%}
         {%- endmacro -%}
         
         {%- macro moon() -%}
           {%- if states.sensor.moon.state == 'Full moon' -%}
             {{ [
-                 "Bekijk de volle maan vanavond!",
-                 "Hé kijk, er is een volle maan. ",
-                 "De maan is enorm! En vol. ",
+                 "Bekijk de volle maan vanavond.",
+                 "Hee kijk, er is een volle maan. ",
+                 "De maan is enorm. En vol. ",
                  "Als je vanavond de volle maan wilt zien, dit is je kans."
                  ] | random }}
           {%- endif -%}
@@ -360,20 +361,18 @@ janet_speech_engine:
         
         {%- macro lampen_aan(kamer) -%}
           {% set lampen_aan = [
-            "Blijkbaar vind iemand dat het donker wordt, dus laat me wat lichten voor je aandoen in de " ~ kamer ~ "!",
-            "Het lijkt erop dat het nodig is de " ~ kamer ~ " lampen aan te doen, dus laten we dat eens doen! ",
-            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen in de " ~ kamer ~ "! ",
-            "Ik ga gewoon wat lichten aandoen in de " ~ kamer ~ "! "
+            "Blijkbaar vind iemand dat het donker wordt, dus ik heb de lichten voor je aangedaan in de " ~ kamer ~ ".",
+            "Het lijkt erop dat het nodig is de " ~ kamer ~ " lampen aan te doen, dus ik heb dat gedaan. ",
+            "Je zou niet in het donker moeten zitten. Laten we wat lichten aandoen in de " ~ kamer ~ ". "
           ] %}
           {{ lampen_aan | random }}
         {%- endmacro -%}
         
         {%- macro lampen_uit(kamer) -%}
           {% set lampen_uit = [
-            "Tja de lampen kunnen denk ik wel uit, dus laat me de lichten voor je uitdoen in de " ~ kamer ~ "!",
-            "Het lijkt erop dat de lampen in de " ~ kamer ~ " wel uit kunnen, dus laten we dat eens doen! ",
-            "De lampen hoeven nu echt niet meer aan te staan. Laten we ze uitdoen in de " ~ kamer ~ "! ",
-            "Ik ga gewoon de lichten uitdoen in de " ~ kamer ~ "! "
+            "Tja de lampen kunnen inderdaad wel uit, dus ik doe ze voor je uit in de " ~ kamer ~ ".",
+            "Het lijkt erop dat de lampen in de " ~ kamer ~ " wel uit kunnen, dus laten we dat eens doen. ",
+            "De lampen hoeven nu echt niet meer aan te staan. Laten we ze uitdoen in de " ~ kamer ~ ". "
           ] %}
           {{ lampen_uit | random }}
         {%- endmacro -%}
@@ -401,10 +400,9 @@ janet_speech_engine:
         {%- macro alarm_uit() -%}
           {% set alarm_uit = [
             "Ik heb het alarm voor je uitgezet",
-            "Laat me het alarm uitschakelen, omdat je weer thuis bent. ",
-            "Ik heb de alarmmodus uitgeschakeld en de normale werking hervat! ",
-            "Alarmmodus wordt uitgeschakeld! ",
-            "Omdat je niet meer weg bent, kan ik de alarmmodus uitschakelen. "
+            "Je bent weer thuis, laat me het alarm uitschakelen.",
+            "Ik heb de alarmmodus uitgeschakeld en de normale werking hervat. ",
+            "Alarmmodus wordt uitgeschakeld."
           ] %}
           {{ alarm_uit | random }}
         {%- endmacro -%}
@@ -415,7 +413,6 @@ janet_speech_engine:
           "En nog een ding, wat de geest van de mens ook kan bedenken en geloven, kan het bereiken.",
           "En nog een ding, streef er niet naar om een succes te zijn, maar om van waarde te zijn.",
           "En nog een ding, ik schrijf mijn algehele succes toe aan nooit een excuus te geven of te nemen.",
-          "En nog een ding, het definiëren van het doel is het startpunt van alle prestaties.",
           "En nog een ding, het leven gaat niet over krijgen en hebben, het gaat over geven en zijn.",
           "En nog een ding, we worden wat we denken.",
           "En nog een ding, het leven is tien procent wat je overkomt en negentig procent van hoe je erop reageert.",
@@ -431,8 +428,8 @@ janet_speech_engine:
           "En nog een ding, de beste wraak is enorm succes.",
           "En nog een ding, het universum kan je het goede niet in handen geven, tenzij je het slechte loslaat.",
           "En nog een ding, als je een stem in jezelf hoort zeggen dat je niet kunt schilderen, dan zal verf in alle opzichten tot zwijgen worden gebracht.",
-          "En nog een ding, er is maar één manier om kritiek te vermijden: niets doen, niets zeggen en niets zijn.",
-          "En nog een ding, vraag en het zal u gegeven worden; zoek en u zult vinden; klop en de deur zal voor u geopend worden.",
+          "En nog een ding, er is maar 1 manier om kritiek te vermijden. niets doen, niets zeggen en niets zijn.",
+          "En nog een ding, vraag en het zal u gegeven worden. zoek en u zult vinden. klop en de deur zal voor u geopend worden.",
           "En nog een ding, de enige persoon die je voorbestemd bent te worden, is de persoon die je besluit te zijn.",
           "En nog een ding, ga vol vertrouwen in de richting van je dromen. Leef het leven dat je je hebt voorgesteld.",
           "En nog een ding, bepaalde dingen springen in het oog, maar achtervolg alleen die dingen die het hart veroveren.",
@@ -443,7 +440,7 @@ janet_speech_engine:
           "En nog een ding, alles heeft schoonheid, maar niet iedereen kan het zien.",
           "En nog een ding, het leven wordt niet gemeten aan de hand van het aantal ademhalingen dat we doen, maar aan de momenten die onze adem wegnemen.",
           "En nog een ding, geluk is niet iets kant en klaar. Het komt van je eigen acties.",
-          "En nog een ding, als je een stoel op een raket wordt aangeboden, vraag dan niet welke stoel! Stap gewoon op.",
+          "En nog een ding, als je een stoel op een raket wordt aangeboden, vraag dan niet welke stoel. Stap gewoon op.",
           "En nog een ding, je kunt niet vallen als je niet klimt. Maar het is geen vreugde om je hele leven op de grond te leven.",
           "En nog een ding, uitdagingen maken het leven interessant en overwinnen is wat het leven zinvol maakt.",
           "En nog een ding, als je jezelf wilt optillen, til dan iemand anders op.",
@@ -527,7 +524,7 @@ janet_speech_engine:
           {% set greetings = [
             "Welkom thuis " ~ person ~ ".",
             "Hoi " ~ person ~ ".",
-            person ~ "! Je bent thuis!",
+            person ~ ". Je bent thuis.",
             "Welkom terug " ~ person ~ ".",
             "Welkom terug " ~ person ~ ". Fijne dag.",
             "Welkom thuis " ~ person + ". Ik heb je gemist."
@@ -538,10 +535,10 @@ janet_speech_engine:
         {# Evening closing sentence #}
         {% macro evening_closing_sentence(person) -%}
           {% set closings = [
-            "Hey, fijne avond!",
+            "Hey, fijne avond.",
             "Geniet van je avond.",
             "Rustig aan vanavond.",
-            "Veel plezien vanavond!",
+            "Veel plezien vanavond.",
           ] %}
           {{closings|random}}
         {% endmacro %}
@@ -549,8 +546,8 @@ janet_speech_engine:
         {# Morning greeting sentence #}
         {% macro morning_greeting_sentence(person) -%}
           {% set greetings = [
-            "Goedemorgen " ~ person ~ "!",
-            "Hoi " ~ person ~ ", goed om je weer te zien!",
+            "Goedemorgen " ~ person ~ ".",
+            "Hoi " ~ person ~ ", goed om je weer te zien.",
             "Ah, je bent wakker " ~ person ~ ".",
             "Ik zie dat je eindelijk wakker bent. Het bed was vast lekker warm en comfortabel."
           ] %}
@@ -560,17 +557,17 @@ janet_speech_engine:
         {# Morning closing sentence #}
         {% macro morning_closing_sentence(person) -%}
           {% set closings = [
-            "Have a great day!",
-            "Enjoy your day.",
-            "Have fun today!",
-            "Go get 'em!"
+            "Fijne dag.",
+            "Geniet van je dag.",
+            "Veel plezier vandaag.",
+            "Zet hem op."
           ] %}
           {{closings|random}}
         {%- endmacro %}
         
         {%- macro firealarm(kamer) -%}
           {% set firealarm = [
-            "Alarm! Brandalarm in de " ~ kamer ~ "! Alarm!"
+            "Alarm. Brandalarm in de " ~ kamer ~ ". Alarm."
           ] %}
           {{ firealarm }}
         {%- endmacro -%}
@@ -587,23 +584,379 @@ janet_speech_engine:
         
         {%- macro work_arrive(person) -%}
           {% set work_arrive = [
-            person~" heeft het werk veilig bereikt! ",
-            "Het lijkt er op dat "~person~" op het werk is aangkomen. ",
-            "Het heeft even geduurd, maar "~person~" is eindelijk op het werk aangkomen. "
+            person~" heeft het werk bereikt. ",
+            "Het lijkt er op dat "~person~" op het werk is aangekomen. ",
+            "Het heeft even geduurd, maar "~person~" is eindelijk op het werk aangekomen. "
           ] %}
           {{ work_arrive | random }}
         {%- endmacro -%}
         
         {%- macro work_left(person) -%}
           {% set work_left = [
-            "Het lijkt er op dat "~person~" net van het werk vertrokken is! ",
+            "Het lijkt er op dat "~person~" net van het werk vertrokken is. ",
             "Weer een dag geld verdient. "~person~" is net vertrokken van het werk . ",
             person~" is eindelijk vertrokken van het werk. ",
-            "Even geen werk meer voor "~person~"! "~person~" is net vertrokken! "
+            "Even geen werk meer voor "~person~". "~person~" is net vertrokken. "
           ] %}
           {{ work_left | random }}
         {%- endmacro -%}
+                
+        {# Morning briefing #}
+        {% macro morning_briefing(person) -%}
+          {{morning_greeting_sentence(person)}}
+          {{outside_weather(true)}}
+          {#{pollen_sentence()}#}
+          {#{cold_flu_sentence()}#}
+          {#{org_status_sentence()}#}
+          {#{commute_sentence(person)}#}
+          {{morning_closing_sentence(person)}}
+        {% endmacro %}
+
+        {# Evening briefing #}
+        {% macro evening_briefing(person) -%}
+          {#%- set other_person = get_other_person(person) %#}
+          {{evening_greeting_sentence(person)}}
+          {{holiday_sentence()}}
+          {#{battery_sentence(person)}#}
+          {#{outside_weather(false)}#}
+          {#{omw_sentence(other_person)}#}
+          {#{deliveries_sentence()}#}
+          {#{market_sentence()}#}
+          {#{chore_sentence(states.calendar.general, 'trash', 'Remember to take out the trash. It is trash day.')}#}
+          {#{chore_sentence(states.calendar.general, 'recycling', 'Remember to take out the recycling. It is recycling day.')}#}
+          {#{{event_sentence(states.calendar.facebook)}}#}
+          {#{event_sentence(states.calendar.sca, '', ', get prepared')}#}
+          {#{event_sentence(states.calendar.combat_docket_mma_calendar, 'Oh yeah, and ')}#}
+          {{moon()}}
+          {#{quote_sentence()}#}
+          {{evening_closing_sentence(person)}}
+        {% endmacro %}
         
+        {# Output the briefing #}
+        {% macro briefing(person) -%}
+          {%- if as_timestamp(now())|timestamp_custom("%H", true)|int < 12 -%}
+            {{morning_briefing(person)}}
+              {%- else -%}
+            {{evening_briefing(person)}}
+          {%- endif -%}
+        {% endmacro %}
+        
+        {%- macro deur_lang_open(deur) -%}
+          {% if deur == "slaapkamerdeur" %}
+            Kan iemand de slaapkamerdeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.slaapkamerdeur.last_updated)) | int /60) | int}} minuten open.
+          {% elif deur == "bijkeukendeur" %}
+            Kan iemand de bijkeukendeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.bijkeukendeur.last_updated)) | int /60) | int}} minuten open.
+          {% elif deur == "garagedeur" %}
+            Kan iemand de garagedeur even dicht doen. Hij staat al {{((as_timestamp(now())-as_timestamp(states.binary_sensor.garagedeur.last_updated)) | int /60) | int}} minuten open.
+          {% endif %}  
+        {%- endmacro -%}
+        
+        {%- macro persoon_vertrokken(person) -%}
+          {% if person == "Suzanne" %}
+            Suzanne is vertrokken van haar werk. Ze moet nog {{states.sensor.suzanne_naar_huis.attributes.distance}} kilometer rijden, dus als ze met de auto is dan is ze over {{states.sensor.suzanne_naar_huis.state }} minuten thuis.
+          {% elif person == "Martijn" %}
+            Martijn is vertrokken van zijn werk. Hij moet nog {{states.sensor.martijn_naar_huis.attributes.distance}} kilometer rijden, dus als hij met de auto is dan is hij over {{states.sensor.martijn_naar_huis.state }} minuten thuis.
+          {% endif %}  
+        {%- endmacro -%}
+        
+        {%- macro persoon_vertrokken_auto(person) -%}
+          {% if person == "Suzanne" %}
+            Suzanne is vertrokken van haar werk. Ze moet nog 10 kilometer rijden, dus als ze met de auto is dan is ze over 12 minuten thuis.
+          {% elif person == "Martijn" %}
+            Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de auto is. Hij moet nog 13 kilometer rijden, dus over 16 minuten is hij thuis
+          {% endif %}  
+        {%- endmacro -%}
+        
+        {%- macro persoon_vertrokken_fiets(person) -%}
+          {% if person == "Suzanne" %}
+            Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets is. Ze moet nog {{states.sensor.suzanne_naar_huis_fiets.attributes.distance}} fietsen, dus over {{states.sensor.suzanne_naar_huis_fiets.state }} minuten is ze er.
+          {% elif person == "Martijn" %}
+            Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de fiets is. Hij moet nog {{states.sensor.martijn_naar_huis_fiets.attributes.distance}} fietsen, dus over {{states.sensor.sensor.martijn_naar_huis_fiets.state }} minuten is hij thuis.
+          {% endif %}  
+        {%- endmacro -%}
+        
+        {%- macro persoon_vertrokken_fiets2(person) -%}
+          {% if person == "Suzanne" %}
+            Suzanne is vertrokken van haar werk, het lijkt erop dat ze met de fiets is. Ze moet nog 8 kilometer fietsen, dus over 25 minuten is ze er.
+          {% elif person == "Martijn" %}
+            Martijn is vertrokken van zijn werk, het lijkt erop dat hij met de fiets is. Hij moet nog 5 kilometer fietsen, dus over 16 minuten is hij er
+          {% endif %}  
+        {%- endmacro -%}
+        
+        {%- macro persoon_vlakbij_winkel(person, shop) -%}        
+          {% set persoon_vlakbij_winkel = [
+            person~" is vlakbij de "~shop~", moet er nog iets meegenomen worden?",
+            "Het lijkt er op dat "~person~" vlakbij de "~shop~" is. Is er nog iets nodig van deze winkel?"
+          ] %}
+          {{ persoon_vlakbij_winkel | random }}
+        {%- endmacro -%}
+        
+        {%- macro verbruik_gas() -%}  
+          {% set gas_hoeveelheid = (states.sensor.toon_gas_used_last_hour.state | float | round(3) ) %}
+          {% set verbruik_gas = [
+            "Er is het afgelopen uur veel gas verbruik gemeten, namelijk "~gas_hoeveelheid~" kubieke meter.",
+            "Tjonge, het zou nu wel lekker warm zijn in huis, want we hebben net "~gas_hoeveelheid~" kubieke meter gas opgestookt.",
+            "Denken jullie wel een beetje om het milieu. Want er is het afgelopen uur "~gas_hoeveelheid~" kubieke meter gas verbruikt.",
+            "Tja, zo dit is natuurlijk niet zo goed voor het klimaat. Het afgelopen uur is er de grote hoeveelheid gas van "~gas_hoeveelheid~" kubieke meter verbruikt."
+          ] %}
+          {{ verbruik_gas | random }}
+        {%- endmacro -%}
+        
+        {%- macro verbruik_elec() -%}  
+          {% set elec_hoeveelheid = states.sensor.toon_p1_power_use.state |int %}
+          {% set verbruik_elec = [
+            "Er wordt op het moment veel stroom verbruik gemeten, namelijk "~elec_hoeveelheid~" watt.",
+            "Denken jullie wel een beetje om het milieu. Want er wordt nu "~elec_hoeveelheid~" watt verbruikt.",
+            "Tja, zo gaat het klimaat mooi naar de knoppen. Er wordt de grote hoeveelheid van "~elec_hoeveelheid~" watt verbruikt."
+          ] %}
+          {{ verbruik_elec | random }}
+        {%- endmacro -%}
+        
+        {%- macro hum_check(kamer) -%}
+          {% set hum_keuken = states.sensor.hum_keuken.state | int %}
+          {% set hum_kamer_lars = states.sensor.hum_kamer_lars.state | int %}
+          {% set hum_kamer_nienke = states.sensor.hum_kamer_nienke.state | int %}
+          {% set hum_bijkeuken = states.sensor.hum_bijkeuken.state | int %}
+          {% set hum_buiten = states.sensor.br_humidity.state | int %}
+          {% if kamer == "woonkamer" %}
+            {% set hum = hum_keuken %}
+            {% set kamer_name = "woonkamer" %}
+          {% elif kamer == "kamer_lars" %} 
+            {% set hum = hum_kamer_lars %}
+            {% set kamer_name = "kamer van Lars" %}
+          {% elif kamer == "kamer_nienke" %} 
+            {% set hum = hum_kamer_nienke %}
+            {% set kamer_name = "kamer van Nienke" %}
+          {% elif kamer == "bijkeuken" %} 
+            {% set hum = hum_bijkeuken %}
+            {% set kamer_name = "bijkeuken" %}
+          {% endif %} 
+          {% if hum < hum_buiten %}
+            {% set hum_check = [
+              "De vochtigheid in de " ~ kamer_name ~ " begint erg hoog te worden, namelijk "~hum~" procent. Buiten is de vochtigheid hoger dus misschien extra ventilatie aanzetten?"
+            ] %}
+          {%- else -%}
+            {% set hum_check = [
+              "De vochtigheid in de " ~ kamer_name ~ " begint erg hoog te worden, namelijk "~hum~" procent. Buiten is de vochtigheid lager, namelijk "~hum_buiten~" procent dus een raampje open zetten kan helpen en misschien extra ventilatie aanzetten?"
+            ] %}
+          {%- endif -%}
+          {{ hum_check | random }}
+        {%- endmacro -%}
+        
+        {%- macro temp_check(kamer) -%}
+          {% set temp_keuken = states.sensor.toon_room_temp.state | int %}
+          {% set temp_kamer_lars = states.sensor.temp_kamer_lars.state | int %}
+          {% set temp_kamer_nienke = states.sensor.temp_kamer_nienke.state | int %}
+          {% set temp_bijkeuken = states.sensor.temp_bijkeuken.state | int %}
+          {% set temp_garage = states.sensor.temp_garage.state | int %}
+          {% set temp_buiten = states.sensor.br_temperature.state | int %}
+          {% if kamer == "woonkamer" %}
+            {% set temp = temp_keuken %}
+            {% set kamer_name = "woonkamer" %}
+          {% elif kamer == "kamer_lars" %} 
+            {% set temp = temp_kamer_lars %}
+            {% set kamer_name = "kamer van Lars" %}
+          {% elif kamer == "kamer_nienke" %} 
+            {% set temp = temp_kamer_nienke %}
+            {% set kamer_name = "kamer van Nienke" %}
+          {% elif kamer == "bijkeuken" %} 
+            {% set temp = temp_bijkeuken %}
+            {% set kamer_name = "bijkeuken" %}
+          {% elif kamer == "garage" %} 
+            {% set temp = temp_garage %}
+            {% set kamer_name = "garage" %}
+          {% elif kamer == "buiten" %} 
+            {% set temp = temp_buiten %}
+            {% set kamer_name = "omgeving om het huis" %}
+          {% endif %} 
+          {% if temp < temp_buiten %}
+            {% if temp < 0 %}
+              {% set temp_check = [
+                "De temperatuur in de " ~ kamer_name ~ " begint laag te worden, namelijk "~temp~" graden. Let op bevriezing van de waterleiding!"
+              ] %}
+            {%- else -%}
+              {% set temp_check = [
+                "De temperatuur in de " ~ kamer_name ~ " begint hoog te worden, namelijk "~temp~" graden. Buiten is de temperatuur lager, namelijk "~temp_buiten~" graden dus een raampje open zetten kan helpen en misschien extra ventilatie aanzetten?"
+              ] %}
+            {%- endif -%}
+          {%- else -%}
+            {% if temp < 0 %}
+              {% set temp_check = [
+                "De temperatuur in de " ~ kamer_name ~ " begint laag te worden, namelijk "~temp~" graden. Let op bevriezing van de waterleiding!"
+              ] %}
+            {%- else -%}
+              {% set temp_check = [
+                "De temperatuur in de " ~ kamer_name ~ " begint hoog te worden, namelijk "~temp~" graden. Buiten is de temperatuur lager, namelijk "~temp_buiten~" graden dus een raampje open zetten kan helpen en misschien extra ventilatie aanzetten?"
+              ] %}
+            {%- endif -%}
+          {%- endif -%}
+          {{ temp_check | random }}
+        {%- endmacro -%}
+        
+        {%- macro temp_delta_check(kamer) -%}
+          {% set temp_keuken = states.sensor.temp_keuken.state | int %}
+          {% set temp_kamer_lars = states.sensor.temp_kamer_lars.state | int %}
+          {% set temp_kamer_nienke = states.sensor.temp_kamer_nienke.state | int %}
+          {% set temp_bijkeuken = states.sensor.temp_bijkeuken.state | int %}
+          {% set temp_garage = states.sensor.temp_garage.state | int %}
+          {% set temp_zolder = states.sensor.temp_zolder.state | int %}
+          {% set temp_badkamer = states.sensor.temp_badkamer_bad.state | int %}
+          {% set temp_buiten = states.sensor.br_temperature.state | int %}
+          {% set temp_keuken_stats = states.sensor.keuken_temperature_stats.state | int %}
+          {% set temp_kamer_lars_stats = states.sensor.temperatuur_kamer_lars_stats.state | int %}
+          {% set temp_kamer_nienke_stats = states.sensor.temperatuur_kamer_nienke_stats.state | int %}
+          {% set temp_bijkeuken_stats = states.sensor.temperatuur_bijkeuken_stats.state | int %}
+          {% set temp_garage_stats = states.sensor.temperatuur_garage_stats.state | int %}
+          {% set temp_zolder_stats = states.sensor.temperatuur_zolder_stats.state | int %}
+          {% set temp_badkamer_stats = states.sensor.temperatuur_bad_stats.state | int %}
+          {% if kamer == "woonkamer" %}
+            {% set temp = temp_keuken %}
+            {% set temp_stats = temp_keuken_stats %}
+            {% set kamer_name = "woonkamer" %}
+          {% elif kamer == "kamer_lars" %} 
+            {% set temp = temp_kamer_lars %}
+            {% set temp_stats = temp_kamer_lars_stats %}
+            {% set kamer_name = "kamer van Lars" %}
+          {% elif kamer == "kamer_nienke" %} 
+            {% set temp = temp_kamer_nienke %}
+            {% set temp_stats = temp_kamer_nienke_stats %}
+            {% set kamer_name = "kamer van Nienke" %}
+          {% elif kamer == "bijkeuken" %} 
+            {% set temp = temp_bijkeuken %}
+            {% set temp_stats = temp_bijkeuken_stats %}
+            {% set kamer_name = "bijkeuken" %}
+          {% elif kamer == "garage" %} 
+            {% set temp = temp_garage %}
+            {% set temp_stats = temp_garage_stats %}
+            {% set kamer_name = "garage" %}
+          {% elif kamer == "zolder" %} 
+            {% set temp = temp_zolder %}
+            {% set temp_stats = temp_zolder_stats %}
+            {% set kamer_name = "zolder" %}
+          {% elif kamer == "badkamer" %} 
+            {% set temp = temp_badkamer %}
+            {% set temp_stats = temp_badkamer_stats %}
+            {% set kamer_name = "badkamer" %}
+          {% elif kamer == "buiten" %} 
+            {% set temp = temp_buiten %}
+            {% set kamer_name = "omgeving om het huis" %}
+          {% endif %} 
+          {% if temp-temp_stats > 15 %}
+            {% set temp_delta_check = [
+              "Alarm! De temperatuur stijgt extreem snel in de " ~ kamer_name ~ ", namelijk de temperatuur is net met " ~ (temp-temp_stats) ~ " graden gestegen."
+            ] %}
+          {%- else -%}
+            {% set temp_delta_check = [
+              "De temperatuur stijgt snel in de " ~ kamer_name ~ ", deze is namelijk met " ~ (temp-temp_stats) ~ " graden gestegen."
+            ] %}
+          {%- endif -%}
+          {{ temp_delta_check | random }}
+        {%- endmacro -%}  
+      
+        {# Bathing sentence #}
+        {% macro bathing_sentence() -%}
+          {% set bathing_sentence = [
+            "Ik heb de verwarming in de badkamer en de ventilatie voor je aangezet. Veel plezier in bad.",
+            "Ah, Ik zie dat je lekker in bad wilt gaan. De verwarming en de ventilatie heb ik voor je aangezet. Geniet er van.",
+            "Ah, je wilt in bad. Goed ik stel alles in om je optimaal te laten genieten van je bad."
+          ] %}
+          {{bathing_sentence|random}}
+        {%- endmacro %}
+      
+        {# Alarm Google Home sentence #}
+        {% macro alarm_google_home_sentence(minutes,voor_of_na,alarm_nr) -%}          
+          {% if alarm_nr == 1 %}
+            {% set alarm_sentence = states.input_text.alarm1_text.state %}
+          {% elif alarm_nr == 2 %} 
+            {% set alarm_sentence = states.input_text.alarm2_text.state %}
+          {% elif alarm_nr == 3 %} 
+            {% set alarm_sentence = states.input_text.alarm3_text.state %}
+          {% elif alarm_nr == 4 %} 
+            {% set alarm_sentence = states.input_text.alarm4_text.state %}
+          {% elif alarm_nr == 5 %} 
+            {% set alarm_sentence = states.input_text.alarm5_text.state %}
+          {%- endif -%} 
+          {% if minutes != 1 %}
+            {% set minutes_name = "minuten" %}
+          {%- else -%}
+            {% set minutes_name = "minuut" %}
+          {%- endif -%}
+          {% if minutes != 0 %}
+            {% if voor_of_na == "voor" %}
+              {% set alarm_google_home_sentence = [
+                "Over " ~ minutes ~ " " ~ minutes_name ~ " is het zo ver, want dan is het " ~ alarm_sentence ~ ".",
+                "Geen nieuwe gevechtjes beginnen want nog " ~ minutes ~ " " ~ minutes_name ~ " en dan is het " ~ alarm_sentence ~ ".",
+                "Hebben jullie je tassen, schoenen en jas klaar liggen, want over " ~ minutes ~ " " ~ minutes_name ~ " is het " ~ alarm_sentence ~ ".",
+                "Nog " ~ minutes ~ " " ~ minutes_name ~ " om jullie klaar te maken, want het is bijna " ~ alarm_sentence ~ "."
+              ] %}
+            {%- else -%}
+              {% set alarm_google_home_sentence = [
+                minutes ~ " " ~ minutes_name ~ " geleden was het al " ~ alarm_sentence ~ ".",
+                "Als jullie nu nog op de tablet zitten is het foute boel, want " ~ minutes ~ " " ~ minutes_name ~ " terug was het al tijd " ~ alarm_sentence ~ ".",
+                minutes ~ " " ~ minutes_name ~ " eerder was het eigenlijk al " ~ alarm_sentence ~ "."
+              ] %}
+            {%- endif -%}  
+          {%- else -%}  
+              {% set alarm_google_home_sentence = [
+                "Het is nu zo ver, het is " ~ alarm_sentence ~ ".",
+                "Er is echt geen tijd meer over, want het is " ~ alarm_sentence ~ ".",
+                "De tablet moet nu echt weggelegd worden, want het is " ~ alarm_sentence ~ ".",
+                "Helaas is het afgelopen met spelen en moeten we weg, want het is " ~ alarm_sentence ~ ".",
+                "Leg de tablet maar weg want het is " ~ alarm_sentence ~ "."
+              ] %}
+          {%- endif -%}       
+          {{alarm_google_home_sentence|random}}
+        {%- endmacro %}           
+        
+        {# Guests greeting sentence #}
+        {% macro guests_greeting_sentence(person) %}
+          {% set guests_greeting_sentence = [            
+            "Het lijkt erop dat we een gast in huis hebben. Welkom " ~ person ~ ".",
+            "We hebben een gast. Ik zal de gastmodus inschakelen. Welkom " ~ person ~ ".",
+            "Ik heb de gastmodus ingeschakeld voor het bezoek aan ons huis. Welkom " ~ person ~ ".",
+            "Het komt niet zo heel vaak voor dat gasten blijven. Dus laat me het huis voorbereiden op het bezoek van " ~ person ~ ".",
+          ] %}
+          {{guests_greeting_sentence|random}}
+        {% endmacro %}
+        
+        {%- macro air_quality_check(type) -%}
+          {% set nitrogen_dioxide = states.sensor.waqi_nitrogen_dioxide.state | int %}
+          {% set ozone = states.sensor.waqi_ozone.state | int %}
+          {% set pm_2_5 = states.sensor.waqi_pm_2_5.state | int %}
+          {% set pm_10 = states.sensor.waqi_pm_10.state | int %}
+          {% set waqi_zevenbergen_brabant = states.sensor.waqi_zevenbergen_brabant.state | int %}
+          {% if type == "pm_10" %}
+            {% set value = pm_10 %}
+            {% set place = "zevenbergen" %}
+            {% set type_name = "fijnstof pm10" %}
+          {% elif type == "pm_2_5" %} 
+            {% set value = pm_2_5 %}
+            {% set place = "moerdijk" %}
+            {% set type_name = "fijnstof pm2.5" %}
+          {% elif type == "ozone" %} 
+            {% set value = ozone %}
+            {% set place = "breda" %}
+            {% set type_name = "ozon" %}
+          {% elif type == "nitrogen_dioxide" %} 
+            {% set value = nitrogen_dioxide %}
+            {% set place = "zevenbergen" %}
+            {% set type_name = "stikstof dioxide" %}
+          {% endif %}
+          {% if value < 100 %}
+            {% set air_quality_check = [
+              "De luchtkwaliteit buiten begint minder goed te worden. Er wordt in " ~ place ~ " een hogere concentratie " ~ type_name ~ " gemeten, namelijk " ~ value ~ ". De luchtkwaliteit is nog wel acceptabel."
+            ] %}
+          {% elif value < 150 %}
+            {% set air_quality_check = [
+              "De luchtkwaliteit buiten begint slecht te worden. Er wordt in " ~ place ~ " een hoge concentratie " ~ type_name ~ " gemeten, namelijk " ~ value ~ ". De luchtkwaliteit begint ongezond te worden voor mensen die daar gevoelig voor zijn."
+            ] %}
+          {%- else -%}
+            {% set air_quality_check = [
+              "De luchtkwaliteit buiten begint slecht te worden. Er wordt in " ~ place ~ " een hoge concentratie " ~ type_name ~ " gemeten, namelijk " ~ value ~ ". De luchtkwaliteit is nu echt ongezond voor iedereen, houd daar rekening mee."
+            ] %}
+          {%- endif -%}
+          {{ air_quality_check | random }}
+        {%- endmacro -%}
         
         {# ********************************************* #}
         {#  ******** Start the Speech routines ********  #}
@@ -682,7 +1035,7 @@ janet_speech_engine:
           {{ inside_weather() }}
         {% endif %}
         {% if call_outside_weather == 1 %}
-          {{ outside_weather() }}
+          {{ outside_weather(true) }}
         {% endif %}
         {% if call_light_check == 1 %}
           {{ light_check() }}
@@ -723,11 +1076,61 @@ janet_speech_engine:
         {% if call_work_left == 1 %}
           {{ work_left (person) }}
         {% endif %}
-        {{holiday_sentence()}}        
+        {{holiday_sentence()}}  
+        {% if call_briefing == 1 %}
+          {{ briefing (person) }}
+        {% endif %}      
         {% if call_no_announcement != 1 %}
-          {# call a Random fact about the house or inspiration quote #}
-          {{ witty( ([iss, uv, moon, outside_weather, inspirational_quote,days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random)(), chance) }}
+          {# witty( ([iss, uv, moon, outside_weather(true), inspirational_quote,days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random)(), chance) #}
         {% endif %}
+        {% if call_deur_lang_open == 1 %}
+          {{ deur_lang_open (deur) }}
+        {% endif %}
+        {% if call_persoon_vertrokken == 1 %}
+          {{ persoon_vertrokken (person) }}
+        {% endif %}
+        {% if call_persoon_vertrokken_auto == 1 %}
+          {{ persoon_vertrokken_auto (person) }}
+        {% endif %}
+        {% if call_persoon_vertrokken_fiets == 1 %}
+          {{ persoon_vertrokken_fiets (person) }}
+        {% endif %}
+        {% if call_persoon_vertrokken_fiets2 == 1 %}
+          {{ persoon_vertrokken_fiets2 (person) }}
+        {% endif %}
+        {% if call_persoon_vlakbij_winkel == 1 %}
+          {{ persoon_vlakbij_winkel (person, shop) }}
+        {% endif %}
+        {% if call_verbruik_gas == 1 %}
+          {{ verbruik_gas () }}
+        {% endif %}
+        {% if call_verbruik_elec == 1 %}
+          {{ verbruik_elec () }}
+        {% endif %}
+        {% if call_hum_check == 1 %}
+          {{ hum_check (kamer) }}
+        {% endif %}
+        {% if call_temp_check == 1 %}
+          {{ temp_check (kamer) }}
+        {% endif %}
+        {% if call_temp_delta_check == 1 %}
+          {{ temp_delta_check (kamer) }}
+        {% endif %}  
+        {% if call_bathing_sentence == 1 %}
+          {{ bathing_sentence () }}
+        {% endif %}
+        {% if call_alarm_google_home_sentence == 1 %}
+          {{ alarm_google_home_sentence (minutes,voor_of_na,alarm_nr) }}
+        {% endif %}
+        {% if call_guests_greeting_sentence == 1 %}
+          {{ guests_greeting_sentence (person) }}
+        {% endif %}
+        {% if call_air_quality_check == 1 %}
+          {{ air_quality_check (type) }}
+        {% endif %}
+        
+      inline_keyboard: >-
+        {{ inline_keyboard }}
 
   - service: input_boolean.turn_off
     data:
@@ -750,6 +1153,26 @@ janet_notification_hub:
     data_template:
       speech_message: >-
         {{ speech_message }}
+      inline_keyboard: >-
+        {{ inline_keyboard }}
+  - service: script.janet_text_processing_no_inline_keyboard 
+    data_template:
+      speech_message: >-
+        {{ speech_message }}
+      inline_keyboard: >-
+        {{ inline_keyboard }}
+  - service: script.janet_text_processing_suzanne 
+    data_template:
+      speech_message: >-
+        {{ speech_message }}
+      inline_keyboard: >-
+        {{ inline_keyboard }}
+  - service: script.janet_text_processing_suzanne_no_inline_keyboard 
+    data_template:
+      speech_message: >-
+        {{ speech_message }}
+      inline_keyboard: >-
+        {{ inline_keyboard }}
 ######################################################################################################
 ##                  Within janet_speech_processing the TTS-service is called.                       ##
 ######################################################################################################
@@ -792,7 +1215,7 @@ janet_speech_processing:
       entity_id: >
         {{ media_player }}
       message: >-
-          {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
+        {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
       language: nl
 #  - service: tts.google_translate_say
 #    data_template:
@@ -813,11 +1236,74 @@ janet_speech_processing:
 
 janet_text_processing:
   sequence:
+  - condition: template
+    value_template: "{{ inline_keyboard | length != 0 }}"
   - condition: state
     entity_id: input_boolean.janet_text_notifications
     state: 'on'
+  - condition: template
+    value_template: '{{states.input_select.janet_text_notification_target.state != "Suzanne"}}'
+  - service: notify.telegram_martijn
+    data_template:
+      #TODO
+      title: "Janet:"
+      message: >-
+        {{ speech_message | replace("\n","") | replace("   ","") }}
+      data:
+        inline_keyboard: >
+          {{ inline_keyboard }}
+        
+######################################################################################################
 
-  - service: notify.pushbullet
+janet_text_processing_no_inline_keyboard:
+  sequence:
+  - condition: template
+    value_template: "{{ inline_keyboard | length == 0 }}"
+  - condition: state
+    entity_id: input_boolean.janet_text_notifications
+    state: 'on'
+  - condition: template
+    value_template: '{{states.input_select.janet_text_notification_target.state != "Suzanne"}}'
+  - service: notify.telegram_martijn
+    data_template:
+      #TODO
+      title: "Janet:"
+      message: >-
+        {{ speech_message | replace("\n","") | replace("   ","") }}
+
+######################################################################################################
+
+janet_text_processing_suzanne:
+  sequence:
+  - condition: template
+    value_template: "{{ inline_keyboard | length != 0 }}"
+  - condition: state
+    entity_id: input_boolean.janet_text_notifications
+    state: 'on'
+  - condition: template
+    value_template: '{{states.input_select.janet_text_notification_target.state != "Martijn"}}'
+  - service: notify.telegram_suzanne
+    data_template:
+      #TODO
+      title: "Janet:"
+      message: >-
+        {{ speech_message | replace("\n","") | replace("   ","") }}
+      data:
+        inline_keyboard: >
+          {{ inline_keyboard }}
+
+######################################################################################################
+
+janet_text_processing_suzanne_no_inline_keyboard:
+  sequence:
+  - condition: template
+    value_template: "{{ inline_keyboard | length == 0 }}"
+  - condition: state
+    entity_id: input_boolean.janet_text_notifications
+    state: 'on'
+  - condition: template
+    value_template: '{{states.input_select.janet_text_notification_target.state != "Martijn"}}'
+  - service: notify.telegram_suzanne
     data_template:
       #TODO
       title: "Janet:"
@@ -825,7 +1311,7 @@ janet_text_processing:
         {{ speech_message | replace("\n","") | replace("   ","") }}
       
 ######################################################################################################
-      
+
 '1569578493015':
   alias: random_kitchen
   sequence:
