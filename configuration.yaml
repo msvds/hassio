@@ -183,9 +183,9 @@ timer:
   extended_away_timer:
   kids_home_alone_timer:
 
-maxcube:
-  gateways:
-    - host: 192.168.1.232
+#maxcube:
+#  gateways:
+#    - host: 192.168.1.232
     
 webhook:
 
@@ -440,7 +440,6 @@ input_boolean:
     name: Huis statistieken
   responsibilities:
     name: Verantwoordelijkheden
-  lastmsg:
   janet_guest_mode:
     name: Guest Mode
     icon: mdi:account-multiple
@@ -735,8 +734,6 @@ input_datetime:
     has_date: false
     name: 'Google Home Alarm 5'
     
-    
-    
 input_text:
   alarm1_text:
     name: Alarm 1 Text
@@ -748,8 +745,6 @@ input_text:
     name: Alarm 4 Text
   alarm5_text:
     name: Alarm 5 Text
-
-
 
 input_number:
   minutes_afzuiging_boost:

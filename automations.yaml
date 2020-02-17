@@ -234,16 +234,11 @@
     entity_id: input_select.janet_text_notification_target
     data:
       option: Martijn
-  - service: input_boolean.turn_off
-    data:
-      entity_id: input_boolean.janet_speech_notifications
   - service: script.janet_speech_engine
     data:
       call_lampen_uit: 1
       kamer: woonkamer
-  - service: input_boolean.turn_off
-    data:
-      entity_id: input_boolean.janet_speech_notifications
+      text_only: 1
 - id: '15651109342342342'
   alias: Switch Eetkamerdeur lichten uit
   trigger:
@@ -268,16 +263,11 @@
     entity_id: input_select.janet_text_notification_target
     data:
       option: Martijn
-  - service: input_boolean.turn_off
-    data:
-      entity_id: input_boolean.janet_speech_notifications
   - service: script.janet_speech_engine
     data:
       call_lampen_uit: 1
       kamer: woonkamer
-  - service: input_boolean.turn_on
-    data:
-      entity_id: input_boolean.janet_speech_notifications
+      text_only: 1
 - id: knop chillkamer single click
   alias: Switch chillkamer single click
   trigger:
@@ -492,6 +482,12 @@
       id: smart_switch_kamer_lars
       event: 1005
   condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_lars_triple.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 1 | int}}
+
+      '
   action:
   - service: input_select.select_option
     entity_id: input_select.janet_text_notification_target
@@ -555,6 +551,12 @@
     event_type: deconz_event
     platform: event
   condition:
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.switch_nienke_triple.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 1 | int}}
+
+      '
   action:
   - service: input_select.select_option
     entity_id: input_select.janet_text_notification_target
@@ -1427,6 +1429,7 @@
   - service: script.janet_speech_engine
     data:
       call_update: 1
+      text_only: 1
   - data:
       message: Home Assistant {{ state_attr('binary_sensor.updater', 'newest_version')
         }} is now available.
@@ -2325,6 +2328,7 @@
   - service: script.janet_speech_engine
     data:
       CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      text_only: 1
 - id: '1567645645668'
   alias: Switch Eetkamerdeur lichten aan
   trigger:
@@ -2354,6 +2358,7 @@
   - service: script.janet_speech_engine
     data:
       CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      text_only: 1
 - id: '1567502350372'
   alias: Miscellaneous Test timer
   trigger:
@@ -2603,6 +2608,7 @@
   - service: script.janet_speech_engine
     data:
       CustomMessage: Let op. De voorraad zout in de waterontharder is op. Graag bijvullen.
+      text_only: 1
   - service: notify.woonkamerandroidtv
     data:
       message: De voorraad zout in de waterontharder is op. Graag bijvullen.
@@ -4731,6 +4737,7 @@
     data:
       call_hum_check: 1
       kamer: kamer_lars
+      text_only: 1
 - id: 156453fgdgd74
   alias: Notification Humidity kamer nienke
   trigger:
@@ -4749,6 +4756,7 @@
     data:
       call_hum_check: 1
       kamer: kamer_nienke
+      text_only: 1
 - id: '15634543463474'
   alias: Notification Humidity bijkeuken
   trigger:
@@ -4767,6 +4775,7 @@
     data:
       call_hum_check: 1
       kamer: bijkeuken
+      text_only: 1
 - id: 156442gdfgdf34274'
   alias: Notification Hoog Gasverbruik
   trigger:
@@ -4926,6 +4935,7 @@
     data:
       call_temp_delta_check: 1
       kamer: woonkamer
+      text_only: 1
 - id: 156445hfdhfgfs
   alias: Notification Temperatuur stijging kamer Lars
   trigger:
@@ -4945,6 +4955,7 @@
     data:
       call_temp_delta_check: 1
       kamer: kamer_lars
+      text_only: 1
 - id: 156445hhhhhhhhhg
   alias: Notification Temperatuur stijging kamer Nienke
   trigger:
@@ -4964,6 +4975,7 @@
     data:
       call_temp_delta_check: 1
       kamer: kamer_nienke
+      text_only: 1
 - id: 1564fdgdffghhhg
   alias: Notification Temperatuur stijging zolder
   trigger:
@@ -4983,6 +4995,7 @@
     data:
       call_temp_delta_check: 1
       kamer: zolder
+      text_only: 1
 - id: 1564fdgdffghhhg
   alias: Notification Temperatuur stijging badkamer
   trigger:
@@ -5002,6 +5015,7 @@
     data:
       call_temp_delta_check: 1
       kamer: badkamer
+      text_only: 1
 - id: sonoff1
   alias: Miscellaneous Power state on HA start-up
   trigger:
@@ -5952,7 +5966,7 @@
   trigger:
   - platform: template
     value_template: '{{states.sensor.nas_schoot_volume_used_datavol1.state | int >
-      95}}'
+      95 | int}}'
   condition:
   action:
   - data:
@@ -5964,7 +5978,7 @@
   alias: Notification NAS temp too high
   trigger:
   - platform: template
-    value_template: '{{states.sensor.nas_schoot_system_temperature.state | int > 50}}'
+    value_template: '{{states.sensor.nas_schoot_system_temperature.state | int > 50 | int}}'
   condition:
   action:
   - data:
@@ -5972,11 +5986,22 @@
         hoog, graag checken
       title: NAS temperatuur hoog
     service: notify.pushbullet
+- id: 1553hfsfs6
+  alias: Notification NAS memory usage too high
+  trigger:
+  - platform: template
+    value_template: '{{states.sensor.nas_schoot_memory_usage.state | int > 93 | int}}'
+  condition:
+  action:
+  - data:
+      message: Het geheugengebruik van de NAS temperatuur is erg hoog, graag checken
+      title: NAS geheugengebruik hoog
+    service: notify.pushbullet
 - id: 1553dasdasfg536
   alias: Notification Unifi Gateway Alerts
   trigger:
   - platform: template
-    value_template: '{{states.sensor.unifi_gateway_alerts.state | int > 0}}'
+    value_template: '{{states.sensor.unifi_gateway_alerts.state | int > 0 | int}}'
   condition:
   action:
   - data:
@@ -5988,7 +6013,7 @@
   trigger:
   - platform: template
     value_template: '{{states.sensor.unifi_gateway_firmware_upgradable.state | int
-      > 0}}'
+      > 0 | int}}'
   condition:
   action:
   - data:
@@ -5999,7 +6024,7 @@
   alias: Notification HACS Update
   trigger:
   - platform: template
-    value_template: '{{states.sensor.hacs.state | int > 0}}'
+    value_template: '{{states.sensor.hacs.state | int > 0 | int}}'
   condition:
   action:
   - data:
@@ -6082,6 +6107,7 @@
       call_no_announcement: 1
       call_garage_check: 1
       call_window_check: 1
+      person: Martijn
 - id: 583rwrwfh
   alias: People Greeting Suzanne
   trigger:
@@ -6116,6 +6142,7 @@
       call_no_announcement: 1
       call_garage_check: 1
       call_window_check: 1
+      person: Suzanne
 - id: 58gsdfgdgd
   alias: New device connected
   trigger:
@@ -6454,6 +6481,7 @@
   - service: script.janet_speech_engine
     data:
       CustomMessage: Ik heb de lampen in de woonkamer sfeervol voor je aangezet
+      text_only: 1
 - id: 523453453h
   alias: People Greeting Gellius
   trigger:
@@ -6648,3 +6676,20 @@
       message_id: '{{ trigger.event.data.message.message_id }}'
       chat_id: '{{ trigger.event.data.user_id }}'
       inline_keyboard: []
+- id: '15653dasdasd046'
+  alias: Notification responsibilities google home
+  trigger:
+  - at: 07:30:00
+    platform: time
+  condition:
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      call_greeting: 1
+      call_responsibilities: 1
+      call_garage_check: 1
+      call_window_check: 1

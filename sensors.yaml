@@ -403,7 +403,7 @@
       current_cost_state:
         friendly_name: Huidig tarief
         icon_template: mdi:currency-eur
-        value_template: '{% if (float(states.sensor.toon_p1_power_use_high.state)) > 0 -%}  Hoogtarief {%- else -%} Laagtarief {%- endif %}'
+        value_template: '{% if (states.sensor.toon_p1_power_use_high.state | float) > 0 | float -%}  Hoogtarief {%- else -%} Laagtarief {%- endif %}'
       date_long:
         friendly_name: 'Datum'
         value_template: >
