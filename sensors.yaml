@@ -398,7 +398,17 @@
       toon_p1_power_use_cnt:
         friendly_name: "Toon P1 Power Use Cnt"
         value_template: "{{ (float(states.sensor.toon_p1_power_use_cnt_high.state) + float(states.sensor.toon_p1_power_use_cnt_low.state)) | round(2) }}"
+        unit_of_measurement: 'kWh'
+        icon_template: mdi:flash
+      toon_p1_power_prod:
+        friendly_name: "Toon P1 Power Produce"
+        value_template: "{{ (float(states.sensor.toon_p1_power_prod_high.state) + float(states.sensor.toon_p1_power_prod_low.state)) | round(2) }}"
         unit_of_measurement: 'Watt'
+        icon_template: mdi:flash
+      toon_p1_power_prod_cnt:
+        friendly_name: "Toon P1 Power Produce Cnt"
+        value_template: "{{ (float(states.sensor.toon_p1_power_prod_cnt_high.state) + float(states.sensor.toon_p1_power_prod_cnt_low.state)) | round(2) }}"
+        unit_of_measurement: 'kWh'
         icon_template: mdi:flash
       current_cost_state:
         friendly_name: Huidig tarief
@@ -581,6 +591,55 @@
         friendly_name: "WAQI pm2.5 Moerdijk"
         entity_id: sensor.waqi_julianastraat_moerdijk
         value_template: "{{ state_attr('sensor.waqi_julianastraat_moerdijk', 'pm_2_5') }}"
+      pv_hour_total:
+        value_template: '{{ states.sensor.sems_portal.attributes.hour_total }}'
+        unit_of_measurement: 'hr'
+        friendly_name: "PV uren gebruikt"        
+      pv_eday:
+        value_template: '{{ states.sensor.sems_portal.attributes.eday }}'
+        unit_of_measurement: 'kWh'
+        friendly_name: "PV productie vandaag"
+      pv_temperature:
+        value_template: '{{ states.sensor.sems_portal.attributes.tempperature }}'
+        unit_of_measurement: '°C'
+        friendly_name: "PV Temperatuur Inverter"
+      pv_thismonthetotle:
+        value_template: '{{ states.sensor.sems_portal.attributes.thismonthetotle }}'
+        unit_of_measurement: 'kWh'
+        friendly_name: "PV productie totaal deze maand"
+      pv_lastmonthetotle:
+        value_template: '{{ states.sensor.sems_portal.attributes.lastmonthetotle }}'
+        unit_of_measurement: 'kWh'
+        friendly_name: "PV productie totaal t/m vorige maand"
+      pv_output_power:
+        value_template: '{{ states.sensor.sems_portal.attributes.outputpower }}'
+        unit_of_measurement: 'W'
+        friendly_name: "PV power"
+      pv_etotal:
+        value_template: '{{ states.sensor.sems_portal.attributes.etotal }}'
+        unit_of_measurement: 'kWh'
+        friendly_name: "PV productie totaal"
+      pv_vpv1:
+        value_template: '{{ states.sensor.sems_portal.attributes.vpv1 }}'
+        unit_of_measurement: 'V'
+        friendly_name: "PV DC Voltage"
+      pv_ipv1:
+        value_template: '{{ states.sensor.sems_portal.attributes.ipv1 }}'
+        unit_of_measurement: 'A'
+        friendly_name: "PV DC Current"
+      pv_vac1:
+        value_template: '{{ states.sensor.sems_portal.attributes.vac1 }}'
+        unit_of_measurement: 'V'
+        friendly_name: "PV AC Voltage"
+      pv_iac1:
+        value_template: '{{ states.sensor.sems_portal.attributes.iac1 }}'
+        unit_of_measurement: 'A'
+        friendly_name: "PV AC Current"
+      pv_fac1:
+        value_template: '{{ states.sensor.sems_portal.attributes.fac1 }}'
+        unit_of_measurement: 'Hz'
+        friendly_name: "PV AC Frequency"
+        
 
 #  - platform: history_stats
 #    name: Switch Keuken Click Left Total
@@ -679,6 +738,10 @@
       - elecusagecntlow
       - elecusageflowhigh
       - elecusagecnthigh
+      - elecprodflowlow
+      - elecprodcntlow
+      - elecprodflowhigh
+      - elecprodcnthigh
 
   - platform: toon_boilerstatus
     host: 192.168.1.6
@@ -780,4 +843,10 @@
       - zevenbergen
       - Tilburgseweg, Breda
       - Julianastraat, Moerdijk
-  
+      
+#Zonnepanelen
+  - platform: sems
+    username: !secret gmail_martijn
+    password: !secret sems_password
+    station_id : '5a78774d-d0ac-4652-abf9-5c2a74058cc1'
+    scan_interval: 60

@@ -660,9 +660,9 @@ janet_speech_engine:
         
         {%- macro persoon_vertrokken(person) -%}
           {% if person == "Suzanne" %}
-            Suzanne is vertrokken van haar werk. Ze moet nog {{states.sensor.suzanne_naar_huis.attributes.distance}} kilometer rijden, dus als ze met de auto is dan is ze over {{states.sensor.suzanne_naar_huis.state }} minuten thuis.
+            Suzanne is vertrokken van haar werk. Ze moet nog {{states.sensor.suzanne_naar_huis.attributes.distance | round(0) }} kilometer rijden, dus als ze met de auto is dan is ze over {{states.sensor.suzanne_naar_huis.state | int - 3 }} minuten thuis.
           {% elif person == "Martijn" %}
-            Martijn is vertrokken van zijn werk. Hij moet nog {{states.sensor.martijn_naar_huis.attributes.distance}} kilometer rijden, dus als hij met de auto is dan is hij over {{states.sensor.martijn_naar_huis.state }} minuten thuis.
+            Martijn is vertrokken van zijn werk. Hij moet nog {{states.sensor.martijn_naar_huis.attributes.distance | round(0) }} kilometer rijden, dus als hij met de auto is dan is hij over {{states.sensor.martijn_naar_huis.state | int - 3 }} minuten thuis.
           {% endif %}  
         {%- endmacro -%}
         
@@ -738,11 +738,7 @@ janet_speech_engine:
             {% set hum = hum_bijkeuken %}
             {% set kamer_name = "bijkeuken" %}
           {% endif %} 
-          {% if hum < hum_buiten %}
-            {% set hum_check = [
-              "De vochtigheid in de " ~ kamer_name ~ " begint erg hoog te worden, namelijk "~hum~" procent. Buiten is de vochtigheid hoger dus misschien extra ventilatie aanzetten?"
-            ] %}
-          {%- else -%}
+          {% if hum > hum_buiten %}
             {% set hum_check = [
               "De vochtigheid in de " ~ kamer_name ~ " begint erg hoog te worden, namelijk "~hum~" procent. Buiten is de vochtigheid lager, namelijk "~hum_buiten~" procent dus een raampje open zetten kan helpen en misschien extra ventilatie aanzetten?"
             ] %}
@@ -965,6 +961,79 @@ janet_speech_engine:
           {{ air_quality_check | random }}
         {%- endmacro -%}
         
+        {%- macro pv_production_message() -%}
+          {% set pv_production_today = states.sensor.pv_eday.state | float %}          
+          {% set pv_production_today_rounded = states.sensor.pv_eday.state | float | round(0) %}
+          {% if now().month == 1 %}
+            {% set prod_perc = states.input_number.average_electricity_production_jan_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 2 %}
+            {% set prod_perc = states.input_number.average_electricity_production_feb_perc.state | int %}
+            {% set day_count = 28 | int %}
+          {% elif now().month == 3 %}
+            {% set prod_perc = states.input_number.average_electricity_production_maa_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 4 %}
+            {% set prod_perc = states.input_number.average_electricity_production_apr_perc.state | int %}
+            {% set day_count = 30 | int %}
+          {% elif now().month == 5 %}
+            {% set prod_perc = states.input_number.average_electricity_production_mei_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 6 %}
+            {% set prod_perc = states.input_number.average_electricity_production_jun_perc.state | int %}
+            {% set day_count = 30 | int %}
+          {% elif now().month == 7 %}
+            {% set prod_perc = states.input_number.average_electricity_production_jul_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 8 %}
+            {% set prod_perc = states.input_number.average_electricity_production_aug_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 9 %}
+            {% set prod_perc = states.input_number.average_electricity_production_sep_perc.state | int %}
+            {% set day_count = 30 | int %}
+          {% elif now().month == 10 %}
+            {% set prod_perc = states.input_number.average_electricity_production_okt_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% elif now().month == 11 %}
+            {% set prod_perc = states.input_number.average_electricity_production_nov_perc.state | int %}
+            {% set day_count = 30 | int %}
+          {% elif now().month == 12 %}
+            {% set prod_perc = states.input_number.average_electricity_production_dec_perc.state | int %}
+            {% set day_count = 31 | int %}
+          {% endif %}
+          {% set pv_production_jaar = states.input_number.average_electricity_production_jaar.state | int %}
+          {% set pv_production_month_average = prod_perc / 100 * pv_production_jaar %}
+          {% set pv_production_day_average = prod_perc / 100 * pv_production_jaar / day_count %}
+          {% set pv_production_diff_day_average = pv_production_today - pv_production_day_average  %}
+          {% set pv_production_diff_day_average_perc = 100 * pv_production_diff_day_average | abs / pv_production_day_average  %}
+          {% if pv_production_diff_day_average | float > 2 %}
+            {% set pv_production_message = [
+              "Vandaag hebben de zonnepanelen heel veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
+            ] %}
+          {% endif %}
+          {% if pv_production_diff_day_average | float > 0 and pv_production_diff_day_average | float < 2 %}
+            {% set pv_production_message = [
+              "Vandaag hebben de zonnepanelen veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
+            ] %}
+          {% endif %}
+          {% if pv_production_diff_day_average | float > -2 and pv_production_diff_day_average | float < 0 %}
+            {% set pv_production_message = [
+              "Vandaag hebben de zonnepanelen niet zoveel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+            ] %}
+          {% endif %}
+          {% if pv_production_diff_day_average | float > -4 and pv_production_diff_day_average | float < -2 %}
+            {% set pv_production_message = [
+              "Vandaag hebben de zonnepanelen weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+            ] %}
+          {% endif %}
+          {% if  pv_production_diff_day_average | float < -4 %}
+            {% set pv_production_message = [
+              "Vandaag hebben de zonnepanelen zeer weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+            ] %}
+          {% endif %}
+          {{ pv_production_message | random }}
+        {%- endmacro -%}
+        
         {# ********************************************* #}
         {#  ******** Start the Speech routines ********  #}
         {# ********************************************* #}
@@ -1089,9 +1158,6 @@ janet_speech_engine:
         {{holiday_sentence()}}  
         {% if call_briefing == 1 %}
           {{ briefing (person) }}
-        {% endif %}      
-        {% if call_no_announcement != 1 %}
-          {{ witty( ([iss, uv, moon, outside_weather(true), inspirational_quote,days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random)(), chance) }}
         {% endif %}
         {% if call_deur_lang_open == 1 %}
           {{ deur_lang_open (deur) }}
@@ -1137,6 +1203,13 @@ janet_speech_engine:
         {% endif %}
         {% if call_air_quality_check == 1 %}
           {{ air_quality_check (type) }}
+        {% endif %} 
+        {% if call_pv_production_message == 1 %}
+          {{ pv_production_message () }}
+        {% endif %}    
+        {% if call_no_announcement != 1 %} 
+          {{ witty( ([iss(), uv(), moon(), outside_weather(true), inspirational_quote()]|random), chance) }}
+          {{ witty( ([days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random), chance) }}
         {% endif %}
         
       inline_keyboard: >-

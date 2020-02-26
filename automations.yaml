@@ -844,8 +844,8 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Dit is een test bericht
-      inline_keyboard: '30 Minutes:/30m, 1 Hour:/1h, 3 Hours:/3h, Never:/removekeyboard'
+      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}
+      text_only: 1
 - id: '1565949253532'
   alias: Alarm Fire eetkamer
   trigger:
@@ -1430,11 +1430,6 @@
     data:
       call_update: 1
       text_only: 1
-  - data:
-      message: Home Assistant {{ state_attr('binary_sensor.updater', 'newest_version')
-        }} is now available.
-      title: New Home Assistant Release
-    service: notify.pushbullet
 - id: '1567163961466'
   alias: Timer Lights Off Lars wanneer zelf aangezet week
   trigger:
@@ -1633,16 +1628,6 @@
     entity_id: binary_sensor.dakraam_badkamer
     state: 'on'
   action:
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
-        open!
-      title: Regen op komst!
-    service: notify.pushbullet
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de badkamer is nog
-        open!
-      title: Regen op komst!
-    service: notify.pushbullet_suzanne
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
@@ -1773,16 +1758,6 @@
     entity_id: binary_sensor.dakraam_chillkamer
     state: 'on'
   action:
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
-        nog open!
-      title: Regen op komst!
-    service: notify.pushbullet
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de chillkamer is
-        nog open!
-      title: Regen op komst!
-    service: notify.pushbullet_suzanne
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
@@ -1913,16 +1888,6 @@
     entity_id: binary_sensor.dakraam_slaapkamer
     state: 'on'
   action:
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
-        nog open!
-      title: Regen op komst!
-    service: notify.pushbullet
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam in de slaapkamer is
-        nog open!
-      title: Regen op komst!
-    service: notify.pushbullet_suzanne
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
@@ -2053,14 +2018,6 @@
     entity_id: binary_sensor.dakraam_zolder
     state: 'on'
   action:
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
-      title: Regen op komst!
-    service: notify.pushbullet
-  - data:
-      message: Het gaat waarschijnlijk regenen en het dakraam op zolder is nog open!
-      title: Regen op komst!
-    service: notify.pushbullet_suzanne
   - service: input_boolean.turn_on
     data:
       entity_id: input_boolean.alert_mode
@@ -3617,16 +3574,15 @@
 - id: '1568738037540'
   alias: Alert Other wasmachine klaar
   trigger:
-  - platform: template
-    value_template: '{{ states.sensor.wasmachine_vibrationstrength.state | float >
-      60 }}'
+  - platform: state
+    entity_id: input_select.washing_machine_status
+    to: Schoon
   condition:
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Guests"}}'
   - condition: template
     value_template: '{{states.input_select.house_mode.state != "Night"}}'
   action:
-  - delay: 00:15:00
   - service: input_select.select_option
     entity_id: input_select.janet_text_notification_target
     data:
@@ -4133,9 +4089,14 @@
     entity_id: alarm_control_panel.home_alarm
     to: disarmed
   action:
-  - service: notify.pushbullet
-    data_template:
-      message: Het alarm is uitgeschakeld om {{ states('sensor.date_time') }}
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Het alarm is uitgeschakeld om {{ states('sensor.date_time') }}
+      text_only: 1
 - id: 15689fsgsdfgsdf19
   alias: Alarm House Send notification when alarm is Armed in Away mode
   trigger:
@@ -4143,10 +4104,14 @@
     entity_id: alarm_control_panel.home_alarm
     to: armed_away
   action:
-  - service: notify.pushbullet
-    data_template:
-      message: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time')
-        }}
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}
+      text_only: 1
 - id: 15689fsdgsdfgsdf9
   alias: Alarm House Send notification when alarm is Armed in Home mode
   trigger:
@@ -4154,12 +4119,14 @@
     entity_id: alarm_control_panel.home_alarm
     to: armed_home
   action:
-  - service: notify.pushbullet
-    data_template:
-      message: 'Het alarm is aangezet in de thuis modus om {{ states("sensor.date_time")
-        }}
-
-        '
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: Martijn
+  - service: script.janet_speech_engine
+    data:
+      CustomMessage: Het alarm is aangezet in de thuis modus om {{ states("sensor.date_time") }}
+      text_only: 1
 - id: '1569223228774'
   alias: Alarm House Disarm Alarm met dubbel click
   trigger:
@@ -5161,6 +5128,9 @@
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
+  - condition: state
+    entity_id: binary_sensor.schoolvakantiedag
+    state: 'off'
   - condition: or
     conditions:
     - condition: template
@@ -5236,6 +5206,9 @@
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
+  - condition: state
+    entity_id: binary_sensor.schoolvakantiedag
+    state: 'off'
   - condition: or
     conditions:
     - condition: template
@@ -5311,6 +5284,9 @@
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
+  - condition: state
+    entity_id: binary_sensor.schoolvakantiedag
+    state: 'off'
   - condition: or
     conditions:
     - condition: template
@@ -5386,6 +5362,9 @@
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
+  - condition: state
+    entity_id: binary_sensor.schoolvakantiedag
+    state: 'off'
   - condition: or
     conditions:
     - condition: template
@@ -5461,6 +5440,9 @@
   - condition: state
     entity_id: input_boolean.all_alarms
     state: 'on'
+  - condition: state
+    entity_id: binary_sensor.schoolvakantiedag
+    state: 'off'
   - condition: or
     conditions:
     - condition: template
@@ -6693,3 +6675,129 @@
       call_responsibilities: 1
       call_garage_check: 1
       call_window_check: 1
+- id: 5gdfgdfgdfh
+  alias: Miscellaneous Blue LEDs off after restart
+  trigger:
+  - event: start
+    platform: homeassistant
+  action:
+  - data:
+      entity_id:
+      - switch.dafang_camera_1_blue_led
+      - switch.dafang_camera_2_blue_led
+    service: switch.turn_off
+- id: 5gdffsdfsdfsfh
+  alias: Miscellaneous Blue LEDs off when on
+  trigger:
+  - entity_id: switch.dafang_camera_1_blue_led
+    platform: state
+    to: 'on'
+  - entity_id: switch.dafang_camera_2_blue_led
+    platform: state
+    to: 'on'
+  action:
+  - data:
+      entity_id:
+      - switch.dafang_camera_1_blue_led
+      - switch.dafang_camera_2_blue_led
+    service: switch.turn_off
+- id: gdfgsgfdgdsgdsfdg
+  alias: Notification Send notification day summary PV production 
+  description: ''
+  trigger:
+  - platform: template
+    value_template: '{{ state_attr('sun.sun', 'elevation') | int < 1 }}'
+  condition:
+  - condition: template
+    value_template: '{{  states.sensor.time.state > "15:30" and states.sensor.time.state < "22:29"}}'
+  - condition: template
+    value_template: '{{ states.sensor.pv_output_power.state | int < 100 }}'
+  - condition: template
+    value_template: '{% set last_triggered = states.automation.notification_send_notification_day_summary_pv_production.attributes.last_triggered
+      %} {{ last_triggered is none or ((as_timestamp(now())-as_timestamp(last_triggered))
+      | int /60) > 720 | int}}'
+  action:
+  - service: input_select.select_option
+    entity_id: input_select.janet_text_notification_target
+    data:
+      option: All
+  - data:
+      call_pv_production_message: 1
+    service: script.janet_speech_engine
+- id: gdfg75474ddffdg
+  alias: Miscellaneous Set washing machine active when power detected
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.power_wasmachine
+      above: 10
+  condition:
+    condition: or
+    conditions:
+      - condition: state
+        entity_id: sensor.washing_machine_status
+        state: Vrij
+      - condition: state
+        entity_id: sensor.washing_machine_status
+        state: Schoon
+      - condition: state
+        entity_id: sensor.washing_machine_status
+        state: Voltooien
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.washing_machine_status
+        option: Wassen
+- id: gdfgs53534fdg
+  alias: Miscellaneous Set washing machine finished when power drops
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.power_wasmachine
+      below: 6
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_select.washing_machine_status
+        state: Wassen
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.washing_machine_status
+        option: Voltooien
+- id: gdfgs5353ffdg
+  alias: Miscellaneous Set washing machine clean after timeout
+  trigger:
+    - platform: state
+      entity_id: input_select.washing_machine_status
+      to: Voltooien
+      for:
+        minutes: 8
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_select.washing_machine_status
+        state: Voltooien
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.washing_machine_status
+        option: Schoon
+- id: gdfgssg5353fdg
+  alias: Miscellaneous Set washing machine dirty when door opens
+  trigger:
+  - entity_id: binary_sensor.wasmachinedeur
+    platform: state
+    to: 'on'
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_select.washing_machine_status
+        state: Schoon
+  action:
+    - service: input_select.select_option
+      data:
+        entity_id: input_select.washing_machine_status
+        option: Vrij
+

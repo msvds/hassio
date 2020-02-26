@@ -119,49 +119,7 @@ influxdb:
     sensor.*temperature:
       override_measurement: temperature
 
-utility_meter:
-  hourly_electricity:
-    source: sensor.toon_p1_power_use
-    cycle: hourly
-    tariffs:
-      - peak
-      - offpeak
-  daily_electricity:
-    source: sensor.toon_p1_power_use
-    cycle: daily
-    tariffs:
-      - peak
-      - offpeak
-  weekly_electricity:
-    source: sensor.toon_p1_power_use
-    cycle: weekly
-    tariffs:
-      - peak
-      - offpeak
-  monthly_electricity:
-    source: sensor.toon_p1_power_use
-    cycle: monthly
-    tariffs:
-      - peak
-      - offpeak
-  yearly_electricity:
-    source: sensor.toon_p1_power_use
-    cycle: yearly
-    tariffs:
-      - peak
-      - offpeak
-  daily_gas:
-    source: sensor.toon_gas_used_last_hour
-    cycle: daily
-  weekly_gas:
-    source: sensor.toon_gas_used_last_hour
-    cycle: weekly
-  monthly_gas:
-    source: sensor.toon_gas_used_last_hour
-    cycle: monthly
-  yearly_gas:
-    source: sensor.toon_gas_used_last_hour
-    cycle: yearly
+
 
 yeelight:
   devices:
@@ -235,11 +193,118 @@ binary_sensor:
     show_on_map: true
   - platform: workday
     country: NL
+    name: Werkdag
     workdays: [mon, tue, wed, thu, fri]
     excludes: [sat, sun, holiday]
     add_holidays:
-      - '2019-12-26'
-      - '2019-12-31'
+      - '2020-12-26'
+      - '2020-12-31'
+  - platform: workday
+    country: NL
+    name: Schoolvakantiedag
+    workdays: [holiday]
+    excludes: []
+    add_holidays:
+      - '2020-02-25'
+      - '2020-02-26'
+      - '2020-02-27'
+      - '2020-02-28'
+      - '2020-02-29'
+      - '2020-03-01'
+      - '2020-04-18'
+      - '2020-04-19'
+      - '2020-04-20'
+      - '2020-04-21'
+      - '2020-04-22'
+      - '2020-04-23'
+      - '2020-04-24'
+      - '2020-04-25'
+      - '2020-04-26'
+      - '2020-04-27'
+      - '2020-04-28'
+      - '2020-04-29'
+      - '2020-04-30'
+      - '2020-05-01'
+      - '2020-05-02'
+      - '2020-05-03'
+      - '2020-07-11'
+      - '2020-07-12'
+      - '2020-07-13'
+      - '2020-07-14'
+      - '2020-07-15'
+      - '2020-07-16'
+      - '2020-07-17'
+      - '2020-07-18'
+      - '2020-07-19'
+      - '2020-07-20'
+      - '2020-07-21'
+      - '2020-07-22'
+      - '2020-07-23'
+      - '2020-07-24'
+      - '2020-07-25'
+      - '2020-07-26'
+      - '2020-07-27'
+      - '2020-07-28'
+      - '2020-07-29'
+      - '2020-07-30'
+      - '2020-07-31'
+      - '2020-08-01'
+      - '2020-08-02'
+      - '2020-08-03'
+      - '2020-08-04'
+      - '2020-08-05'
+      - '2020-08-06'
+      - '2020-08-07'
+      - '2020-08-08'
+      - '2020-08-09'
+      - '2020-08-10'
+      - '2020-08-11'
+      - '2020-08-12'
+      - '2020-08-13'
+      - '2020-08-14'
+      - '2020-08-15'
+      - '2020-08-16'
+      - '2020-08-17'
+      - '2020-08-18'
+      - '2020-08-19'
+      - '2020-08-20'
+      - '2020-08-21'
+      - '2020-08-22'
+      - '2020-08-23'
+      - '2020-10-17'
+      - '2020-10-18'
+      - '2020-10-19'
+      - '2020-10-20'
+      - '2020-10-21'
+      - '2020-10-22'
+      - '2020-10-23'
+      - '2020-10-24'
+      - '2020-10-25'
+      - '2020-12-19'
+      - '2020-12-20'
+      - '2020-12-21'
+      - '2020-12-22'
+      - '2020-12-23'
+      - '2020-12-24'
+      - '2020-12-25'
+      - '2020-12-26'
+      - '2020-12-27'
+      - '2020-12-28'
+      - '2020-12-29'
+      - '2020-12-30'
+      - '2020-12-31'
+      - '2021-01-01'
+      - '2021-01-02'
+      - '2021-01-03'
+      - '2021-02-13'
+      - '2021-02-14'
+      - '2021-02-15'
+      - '2021-02-16'
+      - '2021-02-17'
+      - '2021-02-18'
+      - '2021-02-19'
+      - '2021-02-20'
+      - '2021-02-21'
 
 alarm_control_panel:
   - platform: manual
@@ -492,6 +557,14 @@ input_select:
       - Martijn
       - Suzanne
       - All
+  washing_machine_status:
+    name: Wasmachine Status
+    options:
+      - Vrij
+      - Wassen
+      - Voltooien
+      - Schoon
+    initial: Vrij
     
 input_datetime:
   mockupancy_bedtime:
@@ -701,7 +774,7 @@ input_datetime:
   carnavalvakantie:
     has_time: false
     has_date: true
-    initial: '2020-02-22'
+    initial: '2021-02-13'
     name: 'Carnavalvakantie'
   meivakantie:
     has_time: false
@@ -1007,7 +1080,171 @@ input_number:
     min: 0
     max: 100
     step: 1
+  average_electricity_production_jaar:
+    name: Gemiddelde opbrengst zonnepanelen per jaar
+    initial: 4400
+    unit_of_measurement: kWh
+    min: 0
+    max: 10000
+    step: 1
+  average_electricity_production_jan_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen januari
+    initial: 3
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_feb_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen februari
+    initial: 5
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_maa_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen maart
+    initial: 8
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_apr_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen april
+    initial: 12
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_mei_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen mei
+    initial: 13
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_jun_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen juni
+    initial: 13
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_jul_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen juli
+    initial: 13
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_aug_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen augustus
+    initial: 11
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_sep_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen september
+    initial: 10
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_okt_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen oktober
+    initial: 7
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_nov_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen november
+    initial: 3
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
+  average_electricity_production_dec_perc:
+    name: Gemiddelde opbrengst percentage zonnepanelen december
+    initial: 2
+    unit_of_measurement: '%'
+    min: 0
+    max: 100
+    step: 1
 
+utility_meter:
+  hourly_electricity_use:
+    source: sensor.toon_p1_power_use_cnt
+    cycle: hourly
+    tariffs:
+      - peak
+      - offpeak
+  daily_electricity_use:
+    source: sensor.toon_p1_power_use_cnt
+    cycle: daily
+    tariffs:
+      - peak
+      - offpeak
+  weekly_electricity_use:
+    source: sensor.toon_p1_power_use_cnt
+    cycle: weekly
+    tariffs:
+      - peak
+      - offpeak
+  monthly_electricity_use:
+    source: sensor.toon_p1_power_use_cnt
+    cycle: monthly
+    tariffs:
+      - peak
+      - offpeak
+  yearly_electricity_use:
+    source: sensor.toon_p1_power_use_cnt
+    cycle: yearly
+    tariffs:
+      - peak
+      - offpeak
+  hourly_electricity_production:
+    source: sensor.toon_p1_power_prod_cnt
+    cycle: hourly
+    tariffs:
+      - peak
+      - offpeak
+  daily_electricity_production:
+    source: sensor.toon_p1_power_prod_cnt
+    cycle: daily
+    tariffs:
+      - peak
+      - offpeak
+  weekly_electricity_production:
+    source: sensor.toon_p1_power_prod_cnt
+    cycle: weekly
+    tariffs:
+      - peak
+      - offpeak
+  monthly_electricity_production:
+    source: sensor.toon_p1_power_prod_cnt
+    cycle: monthly
+    tariffs:
+      - peak
+      - offpeak
+  yearly_electricity_production:
+    source: sensor.toon_p1_power_prod_cnt
+    cycle: yearly
+    tariffs:
+      - peak
+      - offpeak
+  daily_gas_use:
+    source: sensor.toon_gas_used_cnt
+    cycle: daily
+  weekly_gas_use:
+    source: sensor.toon_gas_used_cnt
+    cycle: weekly
+  monthly_gas_use:
+    source: sensor.toon_gas_used_cnt
+    cycle: monthly
+  yearly_gas_use:
+    source: sensor.toon_gas_used_cnt
+    cycle: yearly
 
 media_player:
   - platform: braviatv_psk
