@@ -156,11 +156,11 @@ python_script:
 
 #zigbee2mqtt_networkmap:
 #   #topic: your topic (optional, default zigbee2mqtt)
-panel_iframe:
-  ide:
-    title: IDE
-    icon: mdi:code-braces
-    url: !secret IDE_url
+#panel_iframe:
+#  ide:
+#    title: IDE
+#    icon: mdi:code-braces
+#    url: !secret IDE_url
 #  networkmap:
 #    title: 'Zigbee Map'
 #    url: '/local/community/zigbee2mqtt_networkmap/map.html'
@@ -818,6 +818,16 @@ input_text:
     name: Alarm 4 Text
   alarm5_text:
     name: Alarm 5 Text
+  last_automation1:
+    name: last_automation1
+  last_automation2:
+    name: last_automation2
+  last_automation3:
+    name: last_automation3
+  last_automation4:
+    name: last_automation4
+  last_automation5:
+    name: last_automation5
 
 input_number:
   minutes_afzuiging_boost:

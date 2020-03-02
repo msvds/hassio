@@ -503,8 +503,6 @@ janet_speech_engine:
             En trouwens, het duurt nog {{ states.sensor.dagen_tot_sinterklaas.state }} dagen totdat het 5 december sinterklaas is.
           {% elif states.sensor.dagen_tot_sinterklaas.state|int < 10 %}
             En ter informatie, het is nog maar {{ states.sensor.dagen_tot_sinterklaas.state }} dagen totdat het 5 december sinterklaas is.
-          {% else %}
-              En ter informatie, het duurt nog even totdat het weer vakantie is.
           {% endif %}  
         {% endmacro %}
         
@@ -963,7 +961,7 @@ janet_speech_engine:
         
         {%- macro pv_production_message() -%}
           {% set pv_production_today = states.sensor.pv_eday.state | float %}          
-          {% set pv_production_today_rounded = states.sensor.pv_eday.state | float | round(0) %}
+          {% set pv_production_today_rounded = 1000 * states.sensor.pv_eday.state | float | round(0) %}
           {% if now().month == 1 %}
             {% set prod_perc = states.input_number.average_electricity_production_jan_perc.state | int %}
             {% set day_count = 31 | int %}
@@ -1008,27 +1006,27 @@ janet_speech_engine:
           {% set pv_production_diff_day_average_perc = 100 * pv_production_diff_day_average | abs / pv_production_day_average  %}
           {% if pv_production_diff_day_average | float > 2 %}
             {% set pv_production_message = [
-              "Vandaag hebben de zonnepanelen heel veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
+              "Vandaag hebben de zonnepanelen heel veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
             ] %}
           {% endif %}
           {% if pv_production_diff_day_average | float > 0 and pv_production_diff_day_average | float < 2 %}
             {% set pv_production_message = [
-              "Vandaag hebben de zonnepanelen veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
+              "Vandaag hebben de zonnepanelen veel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent meer dan normaal voor deze maand."
             ] %}
           {% endif %}
           {% if pv_production_diff_day_average | float > -2 and pv_production_diff_day_average | float < 0 %}
             {% set pv_production_message = [
-              "Vandaag hebben de zonnepanelen niet zoveel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+              "Vandaag hebben de zonnepanelen niet zoveel electriciteit opgewekt, namelijk " ~ pv_production_today_rounded ~ " watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
             ] %}
           {% endif %}
           {% if pv_production_diff_day_average | float > -4 and pv_production_diff_day_average | float < -2 %}
             {% set pv_production_message = [
-              "Vandaag hebben de zonnepanelen weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+              "Vandaag hebben de zonnepanelen weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
             ] %}
           {% endif %}
           {% if  pv_production_diff_day_average | float < -4 %}
             {% set pv_production_message = [
-              "Vandaag hebben de zonnepanelen zeer weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " kilo watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
+              "Vandaag hebben de zonnepanelen zeer weinig electriciteit opgewekt, namelijk maar " ~ pv_production_today_rounded ~ " watt uur, dat is " ~ pv_production_diff_day_average_perc | round(0) ~ " procent minder dan normaal voor deze maand."
             ] %}
           {% endif %}
           {{ pv_production_message | random }}
@@ -1209,7 +1207,8 @@ janet_speech_engine:
         {% endif %}    
         {% if call_no_announcement != 1 %} 
           {{ witty( ([iss(), uv(), moon(), outside_weather(true), inspirational_quote()]|random), chance) }}
-          {{ witty( ([days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke"),days_until_holiday()]|random), chance) }}
+          {{ witty( ([days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke")]|random), 15) }}
+          {{ witty( ([days_until_holiday()]|random), 25) }}
         {% endif %}
         
       inline_keyboard: >-
