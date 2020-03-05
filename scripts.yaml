@@ -252,7 +252,7 @@ janet_speech_engine:
             {% endif %}
           {% elif now().strftime("%a") == "Thu" %}
             {% if (now().strftime('%H')|int <= 9 and now().strftime('%H')|int >= 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
-              Vandaag is het helaas de beurt voor papa en mama om de tafel te dekken en af te ruimen. Lars en Nienke hebben mazzel en zijn vrij.
+              Vandaag is het de beurt voor papa en mama om de tafel te dekken en af te ruimen.
             {% endif %}
           {% elif now().strftime("%a") == "Fri" %}
             {% if (now().strftime('%H')|int <= 9 and now().strftime('%H')|int >= 7) or (now().strftime('%H')|int >= 17 and now().strftime('%H')|int <= 19)  %}
@@ -961,7 +961,7 @@ janet_speech_engine:
         
         {%- macro pv_production_message() -%}
           {% set pv_production_today = states.sensor.pv_eday.state | float %}          
-          {% set pv_production_today_rounded = 1000 * states.sensor.pv_eday.state | float | round(0) %}
+          {% set pv_production_today_rounded = (1000 * states.sensor.pv_eday.state | float) | round(0) %}
           {% if now().month == 1 %}
             {% set prod_perc = states.input_number.average_electricity_production_jan_perc.state | int %}
             {% set day_count = 31 | int %}
@@ -1040,13 +1040,22 @@ janet_speech_engine:
         {% endif %}
         {% if call_no_announcement != 1 %}
           {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 5 %}
-            Goedemorgen.
+            {% set goedemorgen = [
+              "Goedemorgen."
+            ] %}
+            {{ goedemorgen|random }}
           {% elif now().strftime('%H')|int >= 12 and now().strftime('%H')|int < 17 %}
-            Goedemiddag.
+            {% set goedemiddag = [
+              "Goedemiddag."
+            ] %}
+            {{ goedemiddag|random }}
           {% else %}
-            Goede avond.
+            {% set goedeavond = [
+              "Goede avond."
+            ] %}
+            {{ goedeavond|random }}
           {% endif %}
-        {% endif %}
+        {% endif %}       
         
         {% if call_introduction == 1 %}
           {{ introduction() }}
@@ -1207,8 +1216,8 @@ janet_speech_engine:
         {% endif %}    
         {% if call_no_announcement != 1 %} 
           {{ witty( ([iss(), uv(), moon(), outside_weather(true), inspirational_quote()]|random), chance) }}
-          {{ witty( ([days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke")]|random), 15) }}
-          {{ witty( ([days_until_holiday()]|random), 25) }}
+          {{ witty( ([days_until("Martijn"),days_until("Suzanne"),days_until("Lars"),days_until("Nienke")]|random), 10) }}
+          {{ witty( ([days_until_holiday()]|random), 20) }}
         {% endif %}
         
       inline_keyboard: >-
@@ -1296,14 +1305,12 @@ janet_speech_processing:
 
   - service: media_player.volume_set
     data_template:
-      entity_id: >
-        {{ media_player }}
+      entity_id: group.google_home_group
       volume_level: >-
         {{ states.input_number.janet_notification_volume.state }}
   - service: tts.google_translate_say
     data_template:
-      entity_id: >
-        {{ media_player }}
+      entity_id: group.google_home_group
       message: >-
         {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
       language: nl
@@ -1401,6 +1408,153 @@ janet_text_processing_suzanne_no_inline_keyboard:
         {{ speech_message | replace("\n","") | replace("   ","") }}
       
 ######################################################################################################
+
+
+######################################################################################################
+##    within janet_speech_engine_lars the string message is generated with the use of macro's.           ##
+######################################################################################################
+
+janet_speech_engine_lars:
+  sequence:
+  - service: script.janet_notification_hub_lars
+    data_template:
+      speech_message: >-
+        {%- macro greeting() -%}
+          {% set greeting = [
+            "Hallo, ",
+            "Hey",
+            "Hoi ",
+            "Hallo daar ",
+            "Hi, ",
+            "Hai, "
+          ] %}
+          {{ greeting|random }}
+        {%- endmacro -%}
+        
+        {%- macro weltrusten() -%}
+          {% set weltrusten = [
+            "Weltrusen.",
+            "Lekker slapen jongen.",
+            "Fijne nacht.",
+            "Ik hoop dat je goed gaat slapen, weltrusten.",
+            "Lekker slapen.",
+            "Trusten."
+          ] %}
+          {{ weltrusten|random }}
+        {%- endmacro -%}
+        
+        {%- macro heating_lars() -%}
+          {% set heating_lars = [
+            "Ik heb de verwarming hier aangezet.",
+            "Ik zal het hier eens wat opwarmen.",
+            "Verwarming is net aangezet."
+          ] %}
+          {{ heating_lars|random }}
+        {%- endmacro -%}
+        
+        {%- macro langskomen() -%}
+          {% set langskomen = [
+            "Ik geef door aan papa en mama dat je wilt dat iemand even langs komt.",
+            "Ik geef door dat je graag wilt dat iemand even langs bij je gaat.",
+            "Ik geef door dat je het leuk zou vinden als er iemand even langs ging."
+          ] %}
+          {{ langskomen | random }}
+        {%- endmacro -%}
+                
+        {# ********************************************* #}
+        {#  ******** Start the Speech routines ********  #}
+        {# ********************************************* #}
+        
+        {% if call_greeting == 1 %}
+          {{ greeting() }}
+        {% endif %}
+        {% if call_no_announcement != 1 %}
+          {% if now().strftime('%H')|int < 12 and now().strftime('%H')|int > 5 %}
+            {% set goedemorgen = [
+              "Goedemorgen.",
+              "Hey goeiemorgen.",
+              "Morguh.",
+              "Hallo daar, goedemorgen."
+            ] %}
+            {{ goedemorgen|random }}
+            Goedemorgen.
+          {% elif now().strftime('%H')|int >= 12 and now().strftime('%H')|int < 17 %}
+            {% set goedemiddag = [
+              "Goedemiddag.",
+              "Hey goededag.",
+              "Hallo daar, goeie middag."
+            ] %}
+            {{ goedemiddag|random }}
+          {% else %}
+            {% set goedeavond = [
+              "Goede avond.",
+              "Hallo goedeavond.",
+              "Hey daar, goeie avond."
+            ] %}
+            {{ goedeavond|random }}
+            Goedeavond.
+          {% endif %}
+        {% endif %}   
+        {% if call_langskomen == 1 %}
+          {{ langskomen () }}
+        {% endif %}     
+        {% if call_weltrusten == 1 %}
+          {{ weltrusten () }}
+        {% endif %}        
+        {% if call_heating_lars == 1 %}
+          {{ heating_lars () }}
+        {% endif %}     
+
+######################################################################################################
+##  janet_notification_hub_lars is the bridge between the speech_engine and the processing units.        ##
+######################################################################################################
+
+janet_notification_hub_lars:
+  sequence:
+  - service: script.janet_speech_processing_lars
+    data_template:
+      speech_message: >-
+        {{ speech_message }}
+
+
+######################################################################################################
+##                  Within janet_speech_processing_lars the TTS-service is called.                       ##
+######################################################################################################
+
+janet_speech_processing_lars:
+  sequence:
+  - condition: and
+    conditions:
+      - condition: or
+        conditions:
+          - condition: time
+            after: '07:00:00'
+            before: '21:15:00'
+          - condition: state
+            entity_id: input_boolean.janet_alert_mode
+            state: 'on'
+      - condition: state
+        entity_id: input_boolean.janet_speech_notifications
+        state: 'on'        
+      - condition: or
+        conditions:
+          - condition: template
+            value_template: '{{ states.person.martijn.state == "home" or states.person.suzanne.state == "home" or states.input_boolean.guest.state == "on" }}'
+          - condition: state
+            entity_id: input_boolean.janet_guest_mode
+            state: 'on'
+
+  - service: media_player.volume_set
+    data_template:
+      entity_id: media_player.keuken
+      volume_level: >-
+        {{ states.input_number.janet_notification_volume.state }}
+  - service: tts.google_translate_say
+    data_template:
+      entity_id: media_player.keuken
+      message: >-
+        {{ speech_message | replace("\n","") | replace("   ","") | replace("  "," ") }}
+      language: nl
 
 '1569578493015':
   alias: random_kitchen
@@ -1641,3 +1795,5 @@ janet_text_processing_suzanne_no_inline_keyboard:
     - service: timer.cancel
       data:
         entity_id: timer.fan_on_timer
+        
+        

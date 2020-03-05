@@ -22,3 +22,5 @@ sensor.0x00158d00011c236b_click_battery:
   battery_sensor_creation_disabled: true
 sensor.0x00158d00011c236b_linkquality_battery:
   battery_sensor_creation_disabled: true
+input_select.washing_machine_status:
+  icon: mdi:washing-machine

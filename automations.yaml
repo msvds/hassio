@@ -183,6 +183,9 @@
       entity_id:
       - light.lampen_kamer_lars
     service: light.turn_off
+  - service: script.janet_speech_engine_lars
+    data:
+      call_weltrusten: 1
 - id: lampuitnienke
   alias: Timer Lights Off Nienke slapen week
   trigger:
@@ -479,6 +482,9 @@
     data:
       call_langskomen: 1
       kind: Lars
+  - service: script.janet_speech_engine_lars
+    data:
+      call_langskomen: 1
 - id: switchnienke1
   alias: Switch Nienke single
   trigger:
@@ -826,7 +832,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}
+      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}.
       text_only: 1
 - id: '1565949253532'
   alias: Alarm Fire eetkamer
@@ -1368,6 +1374,9 @@
       entity_id:
       - light.lampen_kamer_lars
     service: light.turn_off
+  - service: script.janet_speech_engine_lars
+    data:
+      call_weltrusten: 1
 - id: '1566808045199'
   alias: Timer Lights Off Nienke slapen weekend
   trigger:
@@ -2266,7 +2275,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet.
       text_only: 1
 - id: '1567645645668'
   alias: Switch Eetkamerdeur lichten aan
@@ -2296,7 +2305,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet
+      CustomMessage: Ik heb de lampen in de woonkamer voor je gedimd aangezet.
       text_only: 1
 - id: '1567502350372'
   alias: Miscellaneous Test timer
@@ -3571,11 +3580,11 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: De wasmachine is klaar
+      CustomMessage: De wasmachine is klaar.
       inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
   - service: notify.woonkamerandroidtv
     data:
-      message: De wasmachine is klaar
+      message: De wasmachine is klaar.
       title: Wasmachine
       data:
         fontsize: large
@@ -3607,7 +3616,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: De wasmachine is klaar
+      CustomMessage: De wasmachine is klaar.
       inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
 - id: 'telegramrepeat_30m_wasmachine'
   alias: 'Telegram callback to repeat wasmachine message in 30 minutes'
@@ -3634,7 +3643,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: De wasmachine is klaar
+      CustomMessage: De wasmachine is klaar.
       inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
 - id: 'telegramrepeat_3h_wasmachine'
   alias: 'Telegram callback to repeat wasmachine message in 3 hours'
@@ -3661,7 +3670,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: De wasmachine is klaar
+      CustomMessage: De wasmachine is klaar.
       inline_keyboard: '10 min:/10m-wasmachine, 30 min:/30m-wasmachine, 3 uur:/3h-wasmachine, Geen herinnering:/removekeyboard'
 - id: '1568903418336'
   alias: Motion Heating On Kamer Lars
@@ -3679,6 +3688,9 @@
       entity_id: climate.thermostaat_kamer_lars
       temperature: 21
     service: climate.set_temperature
+  - service: script.janet_speech_engine_lars
+    data:
+      call_heating_lars: 1
 - id: '1568904307622'
   alias: Motion Heating Off Kamer Lars
   trigger:
@@ -3886,7 +3898,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: ALARM. Het alarm is getriggered doordat een deur is geopend. Er is 1 minuut om het alarm te deactiveren
+      CustomMessage: ALARM. Het alarm is getriggered doordat een deur is geopend. Er is 1 minuut om het alarm te deactiveren.
       inline_keyboard: 'Sirene Aan:/siren-on-deur-open, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 'telegram_siren-on_deur_open_nacht'
   alias: 'Telegram callback to switch on the siren when it was triggered due to door opening'
@@ -3909,7 +3921,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Sirene aangezet doordat een deur is geopend
+      CustomMessage: Sirene aangezet doordat een deur is geopend.
       inline_keyboard: 'Laat Sirene Aan:/siren-on-deur-open, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: '156942534534396'
   alias: Alarm House Beweging bij arm away
@@ -3963,7 +3975,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren.
       inline_keyboard: 'Sirene Aan:/siren-on-movement, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 'telegram_siren-on_Beweging'
   alias: 'Telegram callback to switch on the siren when it was triggered due to movement'
@@ -3986,7 +3998,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd
+      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd.
       inline_keyboard: 'Laat Sirene Aan:/siren-on-movement, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 15694tertet4396
   alias: Alarm House Beweging bij arm home
@@ -4022,7 +4034,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren
+      CustomMessage: ALARM. Het alarm is getriggered doordat er beweging is gedetecteerd. Er is 1 minuut om het alarm te deactiveren.
       inline_keyboard: 'Sirene Aan:/siren-on-movement-arm-home, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 'telegram_siren-on_Beweging-arm-home'
   alias: 'Telegram callback to switch on the siren when it was triggered due to movement arm home'
@@ -4045,7 +4057,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd
+      CustomMessage: Sirene aangezet doordat er beweging is gedetecteerd.
       inline_keyboard: 'Laat Sirene Aan:/siren-on-movement-arm-home, Alarm Uit:/alarm-off, Doe Niets:/removekeyboard'
 - id: 15689fsdfsdfsd19
   alias: Alarm House Send notification when alarm triggered
@@ -4077,7 +4089,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Het alarm is uitgeschakeld om {{ states('sensor.date_time') }}
+      CustomMessage: Het alarm is uitgeschakeld om {{ states('sensor.date_time') }}.
       text_only: 1
 - id: 15689fsgsdfgsdf19
   alias: Alarm House Send notification when alarm is Armed in Away mode
@@ -4092,7 +4104,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}
+      CustomMessage: Het alarm is aangezet in de niet thuis modus om {{ states('sensor.date_time') }}.
       text_only: 1
 - id: 15689fsdgsdfgsdf9
   alias: Alarm House Send notification when alarm is Armed in Home mode
@@ -4107,7 +4119,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Het alarm is aangezet in de thuis modus om {{ states("sensor.date_time") }}
+      CustomMessage: Het alarm is aangezet in de thuis modus om {{ states("sensor.date_time") }}.
       text_only: 1
 - id: '1569223228774'
   alias: Alarm House Disarm Alarm met dubbel click
@@ -4183,7 +4195,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren
+      CustomMessage: Dit is nu nog een waarschuwing, in het vervolg is dit het moment waarop de sirene zal afgaan. Dus volgende keer sneller het alarm deactiveren.
 - id: '15653453453046'
   alias: Notification ijskrabben google home
   trigger:
@@ -4204,7 +4216,7 @@
       option: All
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Goedemorgen. Waarschijnlijk moet je zo krabbben, want het vriest op het moment aan de grond
+      CustomMessage: Goedemorgen. Waarschijnlijk moet je zo krabbben, want het vriest op het moment aan de grond.
 - id: '1569228681431'
   alias: Alert Other Empty Batteries
   trigger:
@@ -6502,7 +6514,7 @@
       option: Martijn
   - service: script.janet_speech_engine
     data:
-      CustomMessage: Ik heb de lampen in de woonkamer sfeervol voor je aangezet
+      CustomMessage: Ik heb de lampen in de woonkamer sfeervol voor je aangezet.
       text_only: 1
 - id: 523453453h
   alias: People Greeting Gellius
@@ -6701,7 +6713,7 @@
 - id: '15653dasdasd046'
   alias: Notification responsibilities google home
   trigger:
-  - at: 07:30:00
+  - at: 07:22:00
     platform: time
   condition:
   action:
@@ -6769,7 +6781,7 @@
   trigger:
     - platform: numeric_state
       entity_id: sensor.power_wasmachine
-      above: 10
+      above: 50
   condition:
     condition: or
     conditions:
@@ -6792,7 +6804,7 @@
   trigger:
     - platform: numeric_state
       entity_id: sensor.power_wasmachine
-      below: 6
+      below: 10
   condition:
     condition: and
     conditions:
